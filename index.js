@@ -1,0 +1,114 @@
+require('dotenv').config();
+const express = require('express');
+const helmet = require('helmet');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+
+// تنظیمات امنیتی و ویو انجین
+app.use(helmet());
+app.set('view engine', 'ejs');
+app.use('/public',express.static('public'));
+
+// تابع رندر پیج
+const renderPage = (res, pageName, lang, data = {}) => {
+    // اگر زبان انگلیسی بود En و اگر نبود پیشفرض Fa
+    const suffix = (lang === 'en') ? 'En' : 'Fa';
+    const viewName = `${pageName}${suffix}`;
+    
+    // رندر با هندل کردن خطای وجود فایل
+    res.render(viewName, { data, lang }, (err, html) => {
+        if (err) {
+            // اگر فایل وجود نداشت، به ارور 404 پاس بده
+            return res.status(404).render('error', { message: 'Page not found' });
+        }
+        res.send(html);
+    });
+};
+
+// روت‌های اصلی و صفحات استاتیک
+app.get('/', (req, res) => res.redirect('/index'));
+// --- روت‌های اصلاح شده ---
+
+app.get('/index', (req, res) => renderPage(res, 'index', 'fa'));
+app.get('/index/:lang', (req, res) => renderPage(res, 'index', req.params.lang));
+
+app.get('/aboutus', (req, res) => renderPage(res, 'aboutus', 'fa'));
+app.get('/aboutus/:lang', (req, res) => renderPage(res, 'aboutus', req.params.lang));
+
+app.get('/team', (req, res) => renderPage(res, 'team', 'fa'));
+app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
+
+app.get('/products', (req, res) => {
+    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
+    renderPage(res, 'products', 'fa', { products });
+});
+app.get('/products/:lang', (req, res) => {
+    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
+    renderPage(res, 'products', req.params.lang, { products });
+});
+
+app.get('/product/:id', (req, res) => {
+    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
+    const product = products.find(p => p.id == req.params.id);
+    renderPage(res, 'productDetail', 'fa', { product });
+});
+app.get('/product/:id/:lang', (req, res) => {
+    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
+    const product = products.find(p => p.id == req.params.id);
+    renderPage(res, 'productDetail', req.params.lang, { product });
+});
+
+app.get('/contact', (req, res) => renderPage(res, 'contact', 'fa'));
+app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.lang));
+
+app.get('/trusted', (req, res) => renderPage(res, 'trusted', 'fa'));
+app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
+
+app.get('/career', (req, res) => renderPage(res, 'career', 'fa'));
+app.get('/career/:lang', (req, res) => renderPage(res, 'career', req.params.lang));
+
+app.get('/blog', (req, res) => renderPage(res, 'blog', 'fa'));
+app.get('/blog/:lang', (req, res) => renderPage(res, 'blog', req.params.lang));
+
+app.get('/faq', (req, res) => renderPage(res, 'faq', 'fa'));
+app.get('/faq/:lang', (req, res) => renderPage(res, 'faq', req.params.lang));
+
+// مدیریت ارور 404 (برای تمام مسیرهایی که پیدا نشدند)
+app.use((req, res, next) => {
+    res.status(404).render('404');
+});
+
+// مدیریت خطاهای عمومی (500)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).render('err');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+
+
+/*
+
+سید ببین می خواهم که یک سایت بزنم با express.js و ejs و dotenv و helmet که سایت یک شرکت باشه
+می خواهم یک صفحه ی ایندکس یا صفحه ی اول سایت داشته باشه که در مسیر / باشه
+می خواهم یک صفحه ی /aboutus داشته باشه
+می خواهم یک صفحه داشته باشه جهت معرفی اشخاص در اون شرکت مانند مدیر عامل سرمایه گزاران بنیان گذاران
+می خواهم یک صفحه ی نمایش محصولات داشته باشه به صورت لیستی
+می خواهم یک صفحه ی ارطبات با ما داشته باشه
+می خواهم یک صفحه ی کسانی که به ما اعتماد کردند داشته باشه
+می خواهم یک صفحه ی همکاری با ما داشته باشه(برای شرح مزیات همکاری)
+می خواهم برای هر محصول یک صفحه داشته باشه
+می خواهم صفحات ارور برای 404 و دیگر ارور ها داشته باشه
+می خواهم صفحه ی بلاگ و اخبار داشته باشه
+می خواهم صفحه ی سوالات متداول داشته باشه
+
+
+می خواهم قابلیت تغییر زبان داشته باشه(زبان در قسمت مغییر های یو آر ال ثبت بشه و اگر نبود پیشفرض فارسی باشه)
+سیستم ذخیره سازی دیتا ها با جیسون هست
+ادمین پلن رو بعدا می سازم(کاری بهش نداشته باش)
+در بک اند حتما مدیریت ارور خوبی داشته باشه
+
+*/
