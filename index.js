@@ -31,48 +31,41 @@ const renderPage = (res, pageName, lang, data = {}) => {
 app.get('/', (req, res) => res.redirect('/index'));
 // --- روت‌های اصلاح شده ---
 
-app.get('/index', (req, res) => renderPage(res, 'index', 'fa'));
+app.get('/index', (req, res) => res.redirect('/index/fa'));
 app.get('/index/:lang', (req, res) => renderPage(res, 'index', req.params.lang));
 
-app.get('/aboutus', (req, res) => renderPage(res, 'aboutus', 'fa'));
+app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
 app.get('/aboutus/:lang', (req, res) => renderPage(res, 'aboutus', req.params.lang));
 
-app.get('/team', (req, res) => renderPage(res, 'team', 'fa'));
+app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
 
-app.get('/products', (req, res) => {
-    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
-    renderPage(res, 'products', 'fa', { products });
-});
+app.get('/products', (req, res) => res.redirect('/products/fa'));
 app.get('/products/:lang', (req, res) => {
     const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
     renderPage(res, 'products', req.params.lang, { products });
 });
 
-app.get('/product/:id', (req, res) => {
-    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
-    const product = products.find(p => p.id == req.params.id);
-    renderPage(res, 'productDetail', 'fa', { product });
-});
+app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
 app.get('/product/:id/:lang', (req, res) => {
     const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
     const product = products.find(p => p.id == req.params.id);
     renderPage(res, 'productDetail', req.params.lang, { product });
 });
 
-app.get('/contact', (req, res) => renderPage(res, 'contact', 'fa'));
+app.get('/contact', (req, res) => res.redirect('/contact/fa'));
 app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.lang));
 
-app.get('/trusted', (req, res) => renderPage(res, 'trusted', 'fa'));
+app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
 
-app.get('/career', (req, res) => renderPage(res, 'career', 'fa'));
+app.get('/career', (req, res) => res.redirect('/career/fa'));
 app.get('/career/:lang', (req, res) => renderPage(res, 'career', req.params.lang));
 
-app.get('/blog', (req, res) => renderPage(res, 'blog', 'fa'));
+app.get('/blog', (req, res) => res.redirect('/blog/fa'));
 app.get('/blog/:lang', (req, res) => renderPage(res, 'blog', req.params.lang));
 
-app.get('/faq', (req, res) => renderPage(res, 'faq', 'fa'));
+app.get('/faq', (req, res) => res.redirect('/faq/fa'));
 app.get('/faq/:lang', (req, res) => renderPage(res, 'faq', req.params.lang));
 
 // مدیریت ارور 404 (برای تمام مسیرهایی که پیدا نشدند)
