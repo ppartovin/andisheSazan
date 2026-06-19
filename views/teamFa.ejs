@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>اعضای تیم</title>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+}
+
+main{
+  padding:20px;
+  max-width:800px;
+}
+
+.team{
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+}
+
+.member{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.member img{
+  width:200px;
+  height:auto;
+}
+</style>
+
+</head>
+
+<body>
+
+<%- include('./partials/header.ejs') %>
+
+<main>
+
+<h1>اعضای تیم</h1>
+
+<p>
+در این بخش می‌توانید با اعضای تیم شرکت آشنا شوید و نقش هر کدام را در مجموعه ببینید.
+</p>
+
+<section class="team">
+
+<article class="member">
+
+<img src="https://via.placeholder.com/200x200" alt="علی رضایی">
+
+<h2>علی رضایی</h2>
+
+<p>مدیر فنی</p>
+
+<p>
+علی مسئول هدایت تیم فنی شرکت است و در طراحی و توسعه سیستم‌های نرم‌افزاری نقش اصلی دارد.
+</p>
+
+</article>
+
+
+<article class="member">
+
+<img src="https://via.placeholder.com/200x200" alt="سارا محمدی">
+
+<h2>سارا محمدی</h2>
+
+<p>طراح رابط کاربری</p>
+
+<p>
+سارا روی طراحی رابط کاربری و تجربه کاربری محصولات کار می‌کند.
+</p>
+
+</article>
+
+
+<article class="member">
+
+<img src="https://via.placeholder.com/200x200" alt="محمد کریمی">
+
+<h2>محمد کریمی</h2>
+
+<p>توسعه‌دهنده بک‌اند</p>
+
+<p>
+محمد مسئول توسعه سرویس‌های سمت سرور و زیرساخت‌های نرم‌افزاری است.
+</p>
+
+</article>
+
+</section>
+
+</main>
+<%- include('./partials/footer.ejs') %>
+
+</body>
+</html>

@@ -16,12 +16,12 @@ const renderPage = (res, pageName, lang, data = {}) => {
     // اگر زبان انگلیسی بود En و اگر نبود پیشفرض Fa
     const suffix = (lang === 'en') ? 'En' : 'Fa';
     const viewName = `${pageName}${suffix}`;
-    
+    console.log('render:',viewName)
     // رندر با هندل کردن خطای وجود فایل
     res.render(viewName, { data, lang }, (err, html) => {
         if (err) {
             // اگر فایل وجود نداشت، به ارور 404 پاس بده
-            return res.status(404).render('error', { message: 'Page not found' });
+            return res.status(404).render('404', { message: 'Page not found' });
         }
         res.send(html);
     });
@@ -35,7 +35,7 @@ app.get('/index', (req, res) => res.redirect('/index/fa'));
 app.get('/index/:lang', (req, res) => renderPage(res, 'index', req.params.lang));
 
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
-app.get('/aboutus/:lang', (req, res) => renderPage(res, 'aboutus', req.params.lang));
+app.get('/aboutus/:lang', (req, res) => {console.log('aboutus'); renderPage(res, 'aboutus', req.params.lang) });
 
 app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
@@ -59,8 +59,8 @@ app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.la
 app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
 
-app.get('/career', (req, res) => res.redirect('/career/fa'));
-app.get('/career/:lang', (req, res) => renderPage(res, 'career', req.params.lang));
+app.get('/partnership', (req, res) => res.redirect('/career/fa'));
+app.get('/partnership/:lang', (req, res) => renderPage(res, 'career', req.params.lang));
 
 app.get('/blog', (req, res) => res.redirect('/blog/fa'));
 app.get('/blog/:lang', (req, res) => renderPage(res, 'blog', req.params.lang));
@@ -70,11 +70,13 @@ app.get('/faq/:lang', (req, res) => renderPage(res, 'faq', req.params.lang));
 
 // مدیریت ارور 404 (برای تمام مسیرهایی که پیدا نشدند)
 app.use((req, res, next) => {
+    console.log('404')
     res.status(404).render('404');
 });
 
 // مدیریت خطاهای عمومی (500)
 app.use((err, req, res, next) => {
+    console.log('err')
     console.error(err.stack);
     res.status(500).render('err');
 });

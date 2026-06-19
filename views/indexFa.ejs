@@ -21,6 +21,8 @@ header{
   display:flex;
   align-items:center;
   gap:10px;
+  text-decoration:none;
+  color:inherit;
 }
 
 .logo-box{
@@ -110,24 +112,8 @@ footer{
 
 </head>
 <body>
+<%- include('./partials/header.ejs') %>
 
-<header>
-
-  <div class="logo">
-    <div class="logo-box">لوگو</div>
-    <div>
-      <div>نام شرکت</div>
-      <small>Site Title</small>
-    </div>
-  </div>
-
-  <nav>
-    <a href="/products">محصولات</a>
-    <a href="/about">درباره ما</a>
-    <a href="/contact">ارتباط با ما</a>
-  </nav>
-
-</header>
 
 <main>
   <h1>محتوای صفحه</h1>
@@ -251,31 +237,8 @@ footer{
 
 </main>
 
-<footer>
+<%- include('./partials/footer.ejs') %>
 
-  <div class="footer-sections">
-
-    <div class="footer-col">
-      <div>ما</div>
-      <a href="/contact">ارتباط با ما</a>
-      <a href="/about">درباره ما</a>
-    </div>
-
-    <div class="footer-col">
-      <div>همکاری</div>
-      <a href="/career">همکاری با ما</a>
-    </div>
-
-    <div class="footer-col">
-      <div>محصولات</div>
-      <a href="/products">صفحه محصولات</a>
-      <a href="/wholesale">خرید عمده</a>
-      <a href="/custom-order">سفارش محصول اختصاصی</a>
-    </div>
-
-  </div>
-
-</footer>
 
 </body>
 </html>
