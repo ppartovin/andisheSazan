@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>محصول</title>
+</head>
+
+<style>
+	.shops{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.shop{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:inherit;
+}
+
+.shop img{
+  width:24px;
+  height:24px;
+}
+
+</style>
+
+<body>
+
+<%- include('./partials/header.ejs') %>
+
+<main>
+
+<section class="product-gallery">
+
+  <button id="prev">←</button>
+
+  <img id="product-image" src="/images/p1.jpg" alt="product">
+
+  <button id="next">→</button>
+
+</section>
+
+
+<section class="product-header">
+
+  <h1 class="product-title">عنوان محصول</h1>
+
+  <p class="product-subtitle">زیرعنوان محصول</p>
+
+</section>
+
+
+<section class="product-shops">
+
+  <div class="shops">
+
+    <a class="shop" href="#">
+      <img src="/images/shop1.png" alt="">
+      <span>دیجی کالا</span>
+    </a>
+
+    <a class="shop" href="#">
+      <img src="/images/shop2.png" alt="">
+      <span>ترب</span>
+    </a>
+
+    <a class="shop" href="#">
+      <img src="/images/shop3.png" alt="">
+      <span>ایمالز</span>
+    </a>
+
+  </div>
+
+</section>
+
+
+<section class="product-description">
+
+  <h2>توضیحات</h2>
+
+  <p id="short-desc">
+    این بند اول توضیحات محصول است...
+  </p>
+
+  <div id="full-desc" style="display:none;">
+    <p>این بند اول توضیحات محصول است...</p>
+    <p>این بند دوم توضیحات محصول است...</p>
+    <p>این بند سوم توضیحات محصول است...</p>
+  </div>
+
+  <button id="more">بیشتر</button>
+  <button id="less" style="display:none;">کمتر</button>
+
+</section>
+
+
+<section class="product-features">
+
+  <h2>ویژگی‌ها</h2>
+
+  <table>
+
+    <tr>
+      <th>ویژگی</th>
+      <th>توضیح</th>
+    </tr>
+
+    <tr>
+      <td>تعداد بازیکن</td>
+      <td>۲ تا ۴ نفر</td>
+    </tr>
+
+    <tr>
+      <td>زمان بازی</td>
+      <td>۳۰ دقیقه</td>
+    </tr>
+
+    <tr>
+      <td>رده سنی</td>
+      <td>۱۰+</td>
+    </tr>
+
+  </table>
+
+</section>
+
+</main>
+
+<%- include('./partials/footer.ejs') %>
+
+
+<script>
+
+const images = [
+  "/images/p1.jpg",
+  "/images/p2.jpg",
+  "/images/p3.jpg"
+]
+
+let index = 0
+
+const img = document.getElementById("product-image")
+
+document.getElementById("next").onclick = () => {
+  index++
+  if(index >= images.length) index = 0
+  img.src = images[index]
+}
+
+document.getElementById("prev").onclick = () => {
+  index--
+  if(index < 0) index = images.length - 1
+  img.src = images[index]
+}
+
+
+const more = document.getElementById("more")
+const less = document.getElementById("less")
+const shortDesc = document.getElementById("short-desc")
+const fullDesc = document.getElementById("full-desc")
+
+more.onclick = () => {
+  shortDesc.style.display = "none"
+  fullDesc.style.display = "block"
+  more.style.display = "none"
+  less.style.display = "inline"
+}
+
+less.onclick = () => {
+  shortDesc.style.display = "block"
+  fullDesc.style.display = "none"
+  more.style.display = "inline"
+  less.style.display = "none"
+}
+
+</script>
+
+</body>
+</html>
