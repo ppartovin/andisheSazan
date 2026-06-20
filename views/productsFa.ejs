@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>لیست محصولات</title>
+<script src="/public/products_Script.js"></script>
+</head>
+
+<body>
+
+<%- include('./partials/header.ejs') %>
+
+<main>
+
+<h1>لیست محصولات</h1>
+
+<!-- بخش فیلترها و دسته‌بندی -->
+<aside>
+  <h2>فیلترها</h2>
+  <ul>
+    <li>دسته‌بندی ۱</li>
+    <li>دسته‌بندی ۲</li>
+    <li>دسته‌بندی ۳</li>
+  </ul>
+</aside>
+
+<!-- محفظه اصلی که تمام محصولات توسط جاوااسکریپت در اینجا لود می‌شوند -->
+<section id="product-list-container">
+    <!-- محتوا به صورت Infinite Scroll در اینجا قرار می‌گیرد -->
+</section>
+
+<!-- المان هدف برای تشخیص رسیدن کاربر به انتهای صفحه و شروع بارگذاری جدید -->
+<div id="infinite-scroll-anchor">
+    <p>در حال بارگذاری محصولات...</p>
+</div>
+
+</main>
+
+<%- include('./partials/footer.ejs') %>
+
+</body>
+</html>

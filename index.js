@@ -7,8 +7,8 @@ const path = require('path');
 const app = express();
 
 // تنظیمات امنیتی و ویو انجین
-app.use(helmet());
-app.set('view engine', 'ejs');
+/* app.use(helmet());
+ */app.set('view engine', 'ejs');
 app.use('/public',express.static('public'));
 
 // تابع رندر پیج
@@ -40,10 +40,12 @@ app.get('/aboutus/:lang', (req, res) => {console.log('aboutus'); renderPage(res,
 app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
 
+app.get('/wholesale', (req, res) => res.redirect('/wholesale/fa'));
+app.get('/wholesale/:lang', (req, res) => renderPage(res, 'wholesale', req.params.lang));
+
 app.get('/products', (req, res) => res.redirect('/products/fa'));
 app.get('/products/:lang', (req, res) => {
-    const products = JSON.parse(fs.readFileSync('./data/products.json', 'utf8'));
-    renderPage(res, 'products', req.params.lang, { products });
+    renderPage(res, 'products', req.params.lang);
 });
 
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
@@ -60,13 +62,44 @@ app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
 
 app.get('/partnership', (req, res) => res.redirect('/career/fa'));
-app.get('/partnership/:lang', (req, res) => renderPage(res, 'career', req.params.lang));
+app.get('/partnership/:lang', (req, res) => {console.log('partnership'); renderPage(res, 'partnership', req.params.lang)});
 
 app.get('/blog', (req, res) => res.redirect('/blog/fa'));
 app.get('/blog/:lang', (req, res) => renderPage(res, 'blog', req.params.lang));
 
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
 app.get('/faq/:lang', (req, res) => renderPage(res, 'faq', req.params.lang));
+
+app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
+app.get('/customorder/:lang', (req, res) => renderPage(res, 'customorder', req.params.lang));
+
+
+// فرض کنید این دیتابیس ماست (۱۰۰ محصول فرضی)
+const allProducts = Array.from({ length: 100 }, (_, i) => ({
+    id: i + 1,
+    name: `محصول شماره ${i + 1}`,
+    price: `${(i + 1) * 10000} تومان`,
+    description: `توضیحات کوتاه برای محصول شماره ${i + 1}`
+}));
+
+// API برای دریافت محصولات به صورت تکه‌ای (Pagination)
+app.get('/api/products', (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10; // تعداد محصول در هر بار بارگذاری
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const results = allProducts.slice(startIndex, endIndex);
+
+    // شبیه‌سازی تاخیر شبکه برای دیدن حالت Loading
+    setTimeout(() => {
+        res.json({
+            products: results,
+            hasMore: endIndex < allProducts.length // آیا هنوز محصولی مانده؟
+        });
+    }, 500); 
+});
+
 
 // مدیریت ارور 404 (برای تمام مسیرهایی که پیدا نشدند)
 app.use((req, res, next) => {
