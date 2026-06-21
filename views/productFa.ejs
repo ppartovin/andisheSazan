@@ -2,11 +2,11 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>محصول</title>
+<title><%= data.title %></title>
 </head>
 
 <style>
-	.shops{
+.shops{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
@@ -24,7 +24,6 @@
   width:24px;
   height:24px;
 }
-
 </style>
 
 <body>
@@ -35,95 +34,80 @@
 
 <section class="product-gallery">
 
-  <button id="prev">←</button>
+<button id="prev">←</button>
 
-  <img id="product-image" src="/images/p1.jpg" alt="product">
+<img id="product-image" src="<%= data.image[0] %>" alt="product">
 
-  <button id="next">→</button>
+<button id="next">→</button>
 
 </section>
 
 
 <section class="product-header">
 
-  <h1 class="product-title">عنوان محصول</h1>
-
-  <p class="product-subtitle">زیرعنوان محصول</p>
+<h1 class="product-title"><%= data.title %></h1>
+<p class="product-subtitle"><%= data.subtitle %></p>
 
 </section>
 
 
 <section class="product-shops">
 
-  <div class="shops">
+<div class="shops">
 
-    <a class="shop" href="#">
-      <img src="/images/shop1.png" alt="">
-      <span>دیجی کالا</span>
-    </a>
+<% data.shops.forEach(shop => { %>
 
-    <a class="shop" href="#">
-      <img src="/images/shop2.png" alt="">
-      <span>ترب</span>
-    </a>
+<a class="shop" href="<%= shop.link %>" target="_blank">
+  <img src="<%= shop.image %>" alt="">
+  <span><%= shop.name %></span>
+</a>
 
-    <a class="shop" href="#">
-      <img src="/images/shop3.png" alt="">
-      <span>ایمالز</span>
-    </a>
+<% }) %>
 
-  </div>
+</div>
 
 </section>
 
 
 <section class="product-description">
 
-  <h2>توضیحات</h2>
+<h2>توضیحات</h2>
 
-  <p id="short-desc">
-    این بند اول توضیحات محصول است...
-  </p>
+<p id="short-desc">
+<%= data.description %>
+</p>
 
-  <div id="full-desc" style="display:none;">
-    <p>این بند اول توضیحات محصول است...</p>
-    <p>این بند دوم توضیحات محصول است...</p>
-    <p>این بند سوم توضیحات محصول است...</p>
-  </div>
+<div id="full-desc" style="display:none;">
+<p><%= data.description %></p>
+</div>
 
-  <button id="more">بیشتر</button>
-  <button id="less" style="display:none;">کمتر</button>
+<button id="more">بیشتر</button>
+<button id="less" style="display:none;">کمتر</button>
 
 </section>
 
 
 <section class="product-features">
 
-  <h2>ویژگی‌ها</h2>
+<h2>ویژگی‌ها</h2>
 
-  <table>
+<table>
 
-    <tr>
-      <th>ویژگی</th>
-      <th>توضیح</th>
-    </tr>
+<tr>
+<th>ویژگی</th>
+<th>توضیح</th>
+</tr>
 
-    <tr>
-      <td>تعداد بازیکن</td>
-      <td>۲ تا ۴ نفر</td>
-    </tr>
+<% Object.entries(data.properties).forEach(([key,value]) => { %>
 
-    <tr>
-      <td>زمان بازی</td>
-      <td>۳۰ دقیقه</td>
-    </tr>
+<tr>
+<td><%= key %></td>
+<td><%= value %></td>
+</tr>
 
-    <tr>
-      <td>رده سنی</td>
-      <td>۱۰+</td>
-    </tr>
+<% }) %>
 
-  </table>
+</table>
 
 </section>
 
@@ -134,11 +118,7 @@
 
 <script>
 
-const images = [
-  "/images/p1.jpg",
-  "/images/p2.jpg",
-  "/images/p3.jpg"
-]
+const images = <%- JSON.stringify(data.image) %>
 
 let index = 0
 

@@ -30,6 +30,8 @@ const renderPage = (res, pageName, lang, data = {}) => {
     res.render(viewName, { data, lang }, (err, html) => {
         if (err) {
             // اگر فایل وجود نداشت، به ارور 404 پاس بده
+            //console.log(err)
+            console.log(data.product)
             return res.status(404).render('404', { message: 'Page not found' });
         }
         res.send(html);
@@ -60,8 +62,27 @@ app.get('/products/:lang', (req, res) => {
 app.get('/product',(req,res)=>{res.redirect('/products')})
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
 app.get('/product/:id/:lang', (req, res) => {
-    renderPage(res, 'product', req.params.lang,);
-});
+    const id = req.params.id
+
+    fs.readFile(path.join(__dirname,'data','products.json'),'utf8',(err,data)=>{
+
+        if(err){
+            console.log('err')
+            console.error(err.stack);
+            return res.status(500).render('err');
+        }
+
+        const products = JSON.parse(data)
+        const product = products[id]
+
+        if(!product){
+            return res.status(404).render('404');
+        }
+
+        return renderPage(res,'product',req.params.lang,product)
+
+    })
+})
 
 app.get('/contact', (req, res) => res.redirect('/contact/fa'));
 app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.lang));
