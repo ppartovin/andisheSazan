@@ -98,10 +98,54 @@ app.get('/blogs/:lang', (req, res) => renderPage(res, 'blogs', req.params.lang))
 
 app.get('/blog', (req,res)=>{res.redirect('/blogs')})
 app.get('/blog/:id', (req, res) => res.redirect(`/blog/${req.params.id}/fa`));
-app.get('/blog/:id/:lang', (req, res) => renderPage(res, 'blog', req.params.lang));
+app.get('/blog/:id/:lang', (req, res) => {
+    const id = req.params.id
+
+    fs.readFile(path.join(__dirname,'data','blogs.json'),'utf8',(err,data)=>{
+
+        if(err){
+            console.log('err')
+            console.error(err.stack);
+            return res.status(500).render('err');
+        }
+
+        const blogs = JSON.parse(data)
+        const blog = blogs[id]
+
+        if(!blog){
+            return res.status(404).render('404');
+        }
+
+        return renderPage(res,'blog',req.params.lang,blog)
+
+    })
+
+    //renderPage(res, 'blog', req.params.lang)
+});
 
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
-app.get('/faq/:lang', (req, res) => renderPage(res, 'faq', req.params.lang));
+app.get('/faq/:lang', (req, res) =>{
+
+    fs.readFile(path.join(__dirname,'data','faqs.json'),'utf8',(err,data)=>{
+
+        if(err){
+            console.log('err')
+            console.error(err.stack);
+            return res.status(500).render('err');
+        }
+
+        const faqs = JSON.parse(data)
+
+        if(!faqs){
+            return res.status(404).render('404');
+        }
+
+        return renderPage(res,'faq',req.params.lang,faqs)
+
+    })
+
+    //renderPage(res, 'faq', req.params.lang)
+});
 
 app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
 app.get('/customorder/:lang', (req, res) => renderPage(res, 'customorder', req.params.lang));

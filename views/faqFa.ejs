@@ -5,7 +5,6 @@
 <title>سوالات متداول</title>
 
 <style>
-
 .faq-search{
   margin-bottom:30px;
 }
@@ -31,8 +30,8 @@
   font-size:16px;
   margin-top:10px;
 }
-
 </style>
+
 <script src="/public/faq_Script.js" defer></script>
 </head>
 
@@ -47,40 +46,17 @@
   <button>جستجو</button>
 </section>
 
-
 <section class="faq">
-
   <h2>سوالات متداول</h2>
 
   <div class="faq-list">
 
-    <div class="faq-item">
-      <div class="faq-title">این بازی برای چه سنی مناسب است؟</div>
-      <div class="faq-content">
-        این بازی برای افراد بالای ۱۰ سال طراحی شده است.
+    <% data.forEach(item => { %>
+      <div class="faq-item">
+        <div class="faq-title"><%= item.question %></div>
+        <div class="faq-content"><%= item.answer %></div>
       </div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-title">چند نفر می‌توانند این بازی را انجام دهند؟</div>
-      <div class="faq-content">
-        بین ۲ تا ۴ نفر می‌توانند همزمان بازی کنند.
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-title">زمان متوسط هر بازی چقدر است؟</div>
-      <div class="faq-content">
-        هر دست بازی حدود ۳۰ دقیقه طول می‌کشد.
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-title">آیا امکان ارسال به سراسر کشور وجود دارد؟</div>
-      <div class="faq-content">
-        بله، ارسال به تمام شهرهای کشور انجام می‌شود.
-      </div>
-    </div>
+    <% }) %>
 
   </div>
 
