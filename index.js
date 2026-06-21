@@ -12,12 +12,12 @@ const app = express();
 app.use('/public',express.static('public'));
 
 
-const allProducts = Array.from({ length: 100 }, (_, i) => ({
+/* const allProducts = Array.from({ length: 100 }, (_, i) => ({
     id: i + 1,
     name: `محصول شماره ${i + 1}`,
     price: `${(i + 1) * 10000} تومان`,
     description: `توضیحات کوتاه برای محصول شماره ${i + 1}`
-}));
+})); */
 
 
 // تابع رندر پیج
@@ -153,20 +153,28 @@ app.get('/customorder/:lang', (req, res) => renderPage(res, 'customorder', req.p
 
 // API برای دریافت محصولات به صورت تکه‌ای (Pagination)
 app.get('/api/products', (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10; // تعداد محصول در هر بار بارگذاری
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
+    fs.readFile(path.join(__dirname,'data','products.json'),'utf8',(err,data)=>{
+        const allProducts=Object.values(JSON.parse(data));
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // تعداد محصول در هر بار بارگذاری
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
 
-    const results = allProducts.slice(startIndex, endIndex);
-
-    // شبیه‌سازی تاخیر شبکه برای دیدن حالت Loading
-    setTimeout(() => {
+        //const results = allProducts.slice(startIndex, endIndex);
+        const results = allProducts
+            .slice(startIndex, endIndex)
+            .map((product, index) => ({
+                ...product,
+                link: `/product/${startIndex + index + 1}/fa`
+            }));
+        
+        console.log(results)
         res.json({
             products: results,
             hasMore: endIndex < allProducts.length // آیا هنوز محصولی مانده؟
         });
-    }, 500); 
+    
+    })
 });
 
 

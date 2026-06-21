@@ -19,15 +19,18 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await response.json();
 
+            console.log('data',data)
+            console.log('data.product',data.product)
+
             if (data.products && data.products.length > 0) {
                 data.products.forEach(product => {
                     const productHTML = `
                         <article class="product-item">
-                            <h3>${product.name}</h3>
-                            <p>${product.description}</p>
+                            <h3>${product.title}</h3>
+                            <p>${product.subtitle}</p>
                             <span>${product.price}</span>
                             <br>
-                            <a href="/product/${product.id}/fa">مشاهده</a>
+                            <a href="${product.link}">مشاهده</a>
                             <hr>
                         </article>
                     `;
