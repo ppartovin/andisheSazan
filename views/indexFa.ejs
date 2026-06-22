@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -123,136 +124,114 @@
     <!-- ============================== -->
     <%- include('./partials/header.ejs') %>
 
-    <!-- ============================== -->
-    <!-- MAIN CONTENT -->
-    <!-- ============================== -->
-    <main>
+        <!-- ============================== -->
+        <!-- MAIN CONTENT -->
+        <!-- ============================== -->
+        <main>
 
-        <!-- Page title -->
-        <h1>محتوای صفحه</h1>
+            <!-- Page title -->
+            <h1>محتوای صفحه</h1>
 
-        <!-- Introduction paragraph -->
-        <p>محتوای اصلی اینجا قرار می‌گیرد.</p>
+            <!-- Introduction paragraph -->
+            <p>محتوای اصلی اینجا قرار می‌گیرد.</p>
+
+            <!-- ============================== -->
+            <!-- SECTION 1: Top Products -->
+            <!-- ============================== -->
+            <section>
+                <h2>محصولات برتر</h2>
+
+                <div class="products">
+                    <% if (data.topProducts && data.topProducts.length> 0) { %>
+                        <% data.topProducts.forEach(product=> { %>
+                            <div class="product">
+                                <img src="<%= product.image || 'default.jpg' %>" alt="<%= product.title %>">
+                                <h3>
+                                    <%= product.title %>
+                                </h3>
+                                <p>
+                                    <%= product.subtitle || '' %>
+                                </p>
+                                <span>
+                                    <%= product.price || '' %>
+                                </span>
+                            </div>
+                            <% }) %>
+                                <% } else { %>
+                                    <p>هیچ محصولی یافت نشد.</p>
+                                    <% } %>
+                </div>
+
+                <div class="more">
+                    <a href="/products">مشاهده بیشتر</a>
+                </div>
+            </section>
+
+            <!-- ============================== -->
+            <!-- SECTION 2: Services -->
+            <!-- ============================== -->
+            <section>
+                <h2>ما چه کار می‌کنیم</h2>
+
+                <div class="services">
+                    <div class="service">
+                        <h3>ایده پردازی</h3>
+                        <p>خلق ایده‌های جدید و طراحی تجربه بازی</p>
+                    </div>
+
+                    <div class="service">
+                        <h3>طراحی بازی</h3>
+                        <p>طراحی قوانین، کارت‌ها و ساختار بازی</p>
+                    </div>
+
+                    <div class="service">
+                        <h3>نمونه سازی</h3>
+                        <p>ساخت نمونه اولیه با پرینتر سه بعدی و برش چوب</p>
+                    </div>
+
+                    <div class="service">
+                        <h3>تولید و فروش</h3>
+                        <p>تولید محدود یا همکاری با تولیدکنندگان</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================== -->
+            <!-- SECTION 3: Why Us -->
+            <!-- ============================== -->
+            <section>
+                <h2>چرا ما</h2>
+
+                <div class="reasons">
+                    <div class="reason">
+                        <h3>طراحی خلاقانه</h3>
+                        <p>تمرکز بر تجربه بازی و ایده‌های تازه</p>
+                    </div>
+
+                    <div class="reason">
+                        <h3>نمونه‌سازی سریع</h3>
+                        <p>ساخت نمونه اولیه با پرینتر سه‌بعدی و برش چوب</p>
+                    </div>
+
+                    <div class="reason">
+                        <h3>تولید انعطاف‌پذیر</h3>
+                        <p>امکان تولید محدود یا همکاری با تولیدکنندگان</p>
+                    </div>
+
+                    <div class="reason">
+                        <h3>تمرکز بر کیفیت تجربه</h3>
+                        <p>تست و بهبود بازی قبل از عرضه</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
 
         <!-- ============================== -->
-        <!-- SECTION 1: Top Products -->
+        <!-- FOOTER: Include footer partial -->
         <!-- ============================== -->
-        <section>
-            <h2>محصولات برتر</h2>
-
-            <div class="products">
-                <div class="product">
-                    <img src="product1.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-
-                <div class="product">
-                    <img src="product2.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-
-                <div class="product">
-                    <img src="product3.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-
-                <div class="product">
-                    <img src="product4.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-
-                <div class="product">
-                    <img src="product5.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-
-                <div class="product">
-                    <img src="product6.jpg" alt="محصول">
-                    <h3>عنوان محصول</h3>
-                    <p>زیرعنوان محصول</p>
-                    <span>قیمت تقریبی</span>
-                </div>
-            </div>
-
-            <div class="more">
-                <a href="/products">مشاهده بیشتر</a>
-            </div>
-        </section>
-
-        <!-- ============================== -->
-        <!-- SECTION 2: Services -->
-        <!-- ============================== -->
-        <section>
-            <h2>ما چه کار می‌کنیم</h2>
-
-            <div class="services">
-                <div class="service">
-                    <h3>ایده پردازی</h3>
-                    <p>خلق ایده‌های جدید و طراحی تجربه بازی</p>
-                </div>
-
-                <div class="service">
-                    <h3>طراحی بازی</h3>
-                    <p>طراحی قوانین، کارت‌ها و ساختار بازی</p>
-                </div>
-
-                <div class="service">
-                    <h3>نمونه سازی</h3>
-                    <p>ساخت نمونه اولیه با پرینتر سه بعدی و برش چوب</p>
-                </div>
-
-                <div class="service">
-                    <h3>تولید و فروش</h3>
-                    <p>تولید محدود یا همکاری با تولیدکنندگان</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ============================== -->
-        <!-- SECTION 3: Why Us -->
-        <!-- ============================== -->
-        <section>
-            <h2>چرا ما</h2>
-
-            <div class="reasons">
-                <div class="reason">
-                    <h3>طراحی خلاقانه</h3>
-                    <p>تمرکز بر تجربه بازی و ایده‌های تازه</p>
-                </div>
-
-                <div class="reason">
-                    <h3>نمونه‌سازی سریع</h3>
-                    <p>ساخت نمونه اولیه با پرینتر سه‌بعدی و برش چوب</p>
-                </div>
-
-                <div class="reason">
-                    <h3>تولید انعطاف‌پذیر</h3>
-                    <p>امکان تولید محدود یا همکاری با تولیدکنندگان</p>
-                </div>
-
-                <div class="reason">
-                    <h3>تمرکز بر کیفیت تجربه</h3>
-                    <p>تست و بهبود بازی قبل از عرضه</p>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ============================== -->
-    <!-- FOOTER: Include footer partial -->
-    <!-- ============================== -->
-    <%- include('./partials/footer.ejs') %>
+        <%- include('./partials/footer.ejs') %>
 
 </body>
+
 </html>

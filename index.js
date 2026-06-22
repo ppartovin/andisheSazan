@@ -14,7 +14,7 @@ const app = express();
 // ==============================
 
 // Security middleware (currently commented out)
-// app.use(helmet());
+app.use(helmet());
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
@@ -39,11 +39,10 @@ const renderPage = (res, pageName, lang, data = {}) => {
     const viewName = `${pageName}${suffix}`;
     console.log('render:', viewName);
 
+    console.log(data);
     // Render the view with error handling
     res.render(viewName, { data, lang }, (err, html) => {
         if (err) {
-            // If view file doesn't exist, render 404 page
-            console.log(data.product);
             return res.status(404).render('404', { message: 'Page not found' });
         }
         res.send(html);
@@ -59,7 +58,47 @@ app.get('/', (req, res) => res.reedirect('/index'));
 
 // Index page
 app.get('/index', (req, res) => res.redirect('/index/fa'));
-app.get('/index/:lang', (req, res) => renderPage(res, 'index', req.params.lang));
+app.get('/index/:lang', (req, res) => {
+        // خواندن فایل index.json برای دریافت لیست محصولات برتر
+    fs.readFile(path.join(__dirname, 'data', 'index_data.json'), 'utf8', (err, indexData) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).render('err');
+        }
+
+        const indexConfig = JSON.parse(indexData);
+        const topProductIds = indexConfig.top_products || [];
+
+        // خواندن فایل products.json برای دریافت اطلاعات کامل محصولات
+        fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf8', (err, productsData) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).render('err');
+            }
+
+            const allProducts = JSON.parse(productsData);
+            
+            // استخراج محصولات برتر بر اساس IDها
+            let topProducts = [];
+            topProductIds.forEach(id => {
+                if (allProducts[id]) {
+                    topProducts.push({
+                        id: id,
+                        ...allProducts[id]
+                    });
+                }
+            });
+
+            // اگر بیشتر از 6 تا بود، فقط 6 تای اول
+            if (topProducts.length > 6) {
+                topProducts = topProducts.slice(0, 6);
+            }
+
+            // ارسال داده به صفحه
+            renderPage(res, 'index', req.params.lang, { topProducts });
+        });
+    });
+});
 
 // About Us page
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
