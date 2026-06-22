@@ -1,50 +1,65 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title><%= data.title %></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= data.title %></title>
 </head>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<header>
-  <h1><%= data.title %></h1>
+    <!-- ============================== -->
+    <!-- BLOG HEADER -->
+    <!-- ============================== -->
+    <header>
+        <h1><%= data.title %></h1>
 
-  <div class="blog-meta">
-    <span>نویسنده: <%= data.writer %></span>
-    <span>تاریخ: <%= data.date %></span>
-  </div>
-</header>
+        <div class="blog-meta">
+            <span>نویسنده: <%= data.writer %></span>
+            <span>تاریخ: <%= data.date %></span>
+        </div>
+    </header>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<section class="blog-cover">
-  <img src="<%= data.image %>" alt="<%= data.title %>">
-</section>
+        <!-- ============================== -->
+        <!-- SECTION: Blog Cover Image -->
+        <!-- ============================== -->
+        <section class="blog-cover">
+            <img src="<%= data.image %>" alt="<%= data.title %>">
+        </section>
 
-<article class="blog-content">
+        <!-- ============================== -->
+        <!-- SECTION: Blog Content -->
+        <!-- ============================== -->
+        <article class="blog-content">
+            <% 
+                // Split multi-line text into paragraphs
+                const paragraphs = data.text.split('\n');
+                paragraphs.forEach(p => { 
+                    if(p.trim() !== '') {
+            %>
+                        <p><%= p %></p>
+            <% 
+                    }
+                }); 
+            %>
+        </article>
 
-  <% 
-    // تبدیل متن چندخطی به پاراگراف
-    const paragraphs = data.text.split('\n');
-    paragraphs.forEach(p => { 
-      if(p.trim() !== '') {
-  %>
+    </main>
 
-        <p><%= p %></p>
-
-  <% 
-      }
-    }); 
-  %>
-
-</article>
-
-</main>
-
-<%- include('./partials/footer.ejs') %>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

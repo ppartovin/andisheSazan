@@ -1,58 +1,71 @@
-document.addEventListener("DOMContentLoaded", () => {
+/**
+ * FAQ Page Script
+ * Handles search functionality and toggle display of FAQ answers
+ */
 
-const items = document.querySelectorAll(".faq-item")
-const searchInput = document.querySelector(".faq-search input")
-const searchBtn = document.querySelector(".faq-search button")
+document.addEventListener('DOMContentLoaded', function() {
 
-items.forEach(item => {
+    // ==============================
+    // FAQ TOGGLE - Click to show/hide answer
+    // ==============================
 
-  const title = item.querySelector(".faq-title")
-  const content = item.querySelector(".faq-content")
+    const faqItems = document.querySelectorAll('.faq-item');
 
-  content.style.display = "none"
+    faqItems.forEach(function(item) {
+        const title = item.querySelector('.faq-title');
+        const content = item.querySelector('.faq-content');
 
-  title.onclick = () => {
+        // Initially hide all answers
+        if (content) {
+            content.style.display = 'none';
+        }
 
-    const isOpen = content.style.display === "block"
+        // Toggle answer on title click
+        if (title) {
+            title.onclick = function() {
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            };
+        }
+    });
 
-    document.querySelectorAll(".faq-content").forEach(c=>{
-      c.style.display = "none"
-    })
+    // ==============================
+    // SEARCH FUNCTIONALITY
+    // ==============================
 
-    if(!isOpen){
-      content.style.display = "block"
+    const searchInput = document.querySelector('.faq-search input');
+    const searchButton = document.querySelector('.faq-search button');
+
+    function filterFaqs() {
+        const query = searchInput.value.toLowerCase().trim();
+
+        faqItems.forEach(function(item) {
+            const title = item.querySelector('.faq-title');
+            const content = item.querySelector('.faq-content');
+            const text = (title ? title.textContent : '') + ' ' + (content ? content.textContent : '');
+            
+            if (text.toLowerCase().includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 
-  }
-
-})
-
-
-function searchFAQ(){
-
-  const value = searchInput.value.toLowerCase()
-
-  items.forEach(item => {
-
-    const title = item.querySelector(".faq-title").innerText.toLowerCase()
-    const content = item.querySelector(".faq-content").innerText.toLowerCase()
-
-    if(title.includes(value) || content.includes(value)){
-      item.style.display = "block"
-    }else{
-      item.style.display = "none"
+    // Search on button click
+    if (searchButton) {
+        searchButton.onclick = filterFaqs;
     }
 
-  })
-
-}
-
-searchBtn.onclick = searchFAQ
-
-searchInput.addEventListener("keyup", e=>{
-  if(e.key === "Enter"){
-    searchFAQ()
-  }
-})
-
-})
+    // Search on Enter key
+    if (searchInput) {
+        searchInput.onkeyup = function(e) {
+            if (e.key === 'Enter') {
+                filterFaqs();
+            }
+        };
+    }
+});

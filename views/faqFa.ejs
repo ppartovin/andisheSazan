@@ -1,70 +1,89 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>سوالات متداول</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوالات متداول</title>
 
-<style>
-.faq-search{
-  margin-bottom:30px;
-}
+    <!-- ============================== -->
+    <!-- STYLES -->
+    <!-- ============================== -->
+    <style>
+        .faq-search {
+            margin-bottom: 30px;
+        }
 
-.faq-list{
-  display:flex;
-  flex-direction:column;
-  gap:15px;
-}
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-.faq-item{
-  border:1px solid #ccc;
-  padding:15px;
-}
+        .faq-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+        }
 
-.faq-title{
-  font-size:20px;
-  font-weight:bold;
-  cursor:pointer;
-}
+        .faq-title {
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-.faq-content{
-  font-size:16px;
-  margin-top:10px;
-}
-</style>
+        .faq-content {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
 
-<script src="/public/faq_Script.js" defer></script>
+    <!-- ============================== -->
+    <!-- EXTERNAL SCRIPTS - Deferred -->
+    <!-- ============================== -->
+    <script src="/public/faq_Script.js" defer></script>
 </head>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<section class="faq-search">
-  <input type="text" placeholder="جستجو در سوالات">
-  <button>جستجو</button>
-</section>
+        <!-- ============================== -->
+        <!-- SECTION: FAQ Search -->
+        <!-- ============================== -->
+        <section class="faq-search">
+            <input type="text" placeholder="جستجو در سوالات">
+            <button>جستجو</button>
+        </section>
 
-<section class="faq">
-  <h2>سوالات متداول</h2>
+        <!-- ============================== -->
+        <!-- SECTION: FAQ List -->
+        <!-- ============================== -->
+        <section class="faq">
+            <h2>سوالات متداول</h2>
 
-  <div class="faq-list">
+            <div class="faq-list">
+                <% data.forEach(item => { %>
+                    <div class="faq-item">
+                        <div class="faq-title"><%= item.question %></div>
+                        <div class="faq-content"><%= item.answer %></div>
+                    </div>
+                <% }) %>
+            </div>
+        </section>
 
-    <% data.forEach(item => { %>
-      <div class="faq-item">
-        <div class="faq-title"><%= item.question %></div>
-        <div class="faq-content"><%= item.answer %></div>
-      </div>
-    <% }) %>
+    </main>
 
-  </div>
-
-</section>
-
-</main>
-
-<%- include('./partials/footer.ejs') %>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

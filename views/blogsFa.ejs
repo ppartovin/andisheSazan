@@ -1,108 +1,60 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>بلاگ</title>
+    <meta charset="UTF-8">
+    <title>بلاگ</title>
 </head>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<section class="blog-header">
-<h1>بلاگ</h1>
+        <!-- ============================== -->
+        <!-- SECTION: Blog Header & Search -->
+        <!-- ============================== -->
+        <section class="blog-header">
+            <h1>بلاگ</h1>
 
-<div class="blog-search">
-<input type="text" placeholder="جستجو در مقالات">
-<button>جستجو</button>
-</div>
+            <div class="blog-search">
+                <input type="text" placeholder="جستجو در مقالات">
+                <button>جستجو</button>
+            </div>
+        </section>
 
-</section>
+        <!-- ============================== -->
+        <!-- SECTION: Latest Posts -->
+        <!-- ============================== -->
+        <section class="latest-posts">
+            <h2>مقالات</h2>
 
+            <div class="posts" id="posts-container">
+                <!-- Posts will be injected here -->
+            </div>
 
-<section class="latest-posts">
+            <div id="scroll-loader">
+                در حال بارگذاری...
+            </div>
+        </section>
 
-<h2>مقالات</h2>
+    </main>
 
-<div class="posts" id="posts-container">
-</div>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
-<div id="scroll-loader">
-در حال بارگذاری...
-</div>
-
-</section>
-
-</main>
-
-<%- include('./partials/footer.ejs') %>
-
-
-<script>
-
-let page = 1
-let loading = false
-let hasMore = true
-
-async function loadPosts(){
-
-if(loading || !hasMore) return
-
-loading = true
-
-const res = await fetch(`/api/blogs/${page}`)
-const data = await res.json()
-
-const container = document.getElementById("posts-container")
-
-data.posts.forEach(post => {
-
-const div = document.createElement("div")
-div.className = "post"
-
-div.innerHTML = `
-<img src="${post.image}">
-<h3>${post.title}</h3>
-<p>${post.subtitle}</p>
-<span>${post.date}</span>
-<a href="${post.link}">ادامه مطلب</a>
-`
-
-container.appendChild(div)
-
-})
-
-hasMore = data.hasMore
-page++
-
-if(!hasMore){
-document.getElementById("scroll-loader").innerText = "مقاله بیشتری وجود ندارد"
-}
-
-loading = false
-
-}
-
-
-
-window.addEventListener("scroll",()=>{
-
-const loader = document.getElementById("scroll-loader")
-const rect = loader.getBoundingClientRect()
-
-if(rect.top < window.innerHeight){
-loadPosts()
-}
-
-})
-
-
-// بارگذاری اولین صفحه
-loadPosts()
-
-</script>
+    <!-- ============================== -->
+    <!-- SCRIPTS -->
+    <!-- ============================== -->
+    <script src="/public/blogs_Script.js" defer></script>
 
 </body>
 </html>

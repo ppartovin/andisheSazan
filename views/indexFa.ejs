@@ -1,244 +1,258 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>نام شرکت</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نام شرکت</title>
 
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-}
+    <!-- ============================== -->
+    <!-- STYLES -->
+    <!-- ============================== -->
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
 
-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 20px;
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
 
-.logo{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  text-decoration:none;
-  color:inherit;
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
 
-.logo-box{
-  width:40px;
-  height:40px;
-}
+        .logo-box {
+            width: 40px;
+            height: 40px;
+        }
 
-nav a{
-  margin:0 10px;
-  text-decoration:none;
-}
+        nav a {
+            margin: 0 10px;
+            text-decoration: none;
+        }
 
-main{
-  padding:20px;
-}
-footer{
-  padding:20px;
-}
+        main {
+            padding: 20px;
+        }
 
-.footer-sections{
-  display:flex;
-  gap:40px;
-}
+        footer {
+            padding: 20px;
+        }
 
-.footer-col{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+        .footer-sections {
+            display: flex;
+            gap: 40px;
+        }
 
-.footer-col div{
-  margin-bottom:5px;
-}
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-.footer-col a{
-  text-decoration:none;
-}
+        .footer-col div {
+            margin-bottom: 5px;
+        }
 
-.products{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-  margin:20px 0;
-}
+        .footer-col a {
+            text-decoration: none;
+        }
 
-.product{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+        .products {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
 
-.product img{
-  width:100%;
-  height:auto;
-}
+        .product {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-.more{
-  margin-top:10px;
-}
+        .product img {
+            width: 100%;
+            height: auto;
+        }
 
-.services{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-  margin:20px 0;
-}
+        .more {
+            margin-top: 10px;
+        }
 
-.service{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+        .services {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
 
-.reasons{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-  margin:20px 0;
-}
+        .service {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-.reason{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-</style>
+        .reasons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
 
+        .reason {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+    </style>
 </head>
+
 <body>
-<%- include('./partials/header.ejs') %>
 
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
-  <h1>محتوای صفحه</h1>
-  <p>محتوای اصلی اینجا قرار می‌گیرد.</p>
-  <section>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-  <h2>محصولات برتر</h2>
+        <!-- Page title -->
+        <h1>محتوای صفحه</h1>
 
-  <div class="products">
+        <!-- Introduction paragraph -->
+        <p>محتوای اصلی اینجا قرار می‌گیرد.</p>
 
-    <div class="product">
-      <img src="product1.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+        <!-- ============================== -->
+        <!-- SECTION 1: Top Products -->
+        <!-- ============================== -->
+        <section>
+            <h2>محصولات برتر</h2>
 
-    <div class="product">
-      <img src="product2.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+            <div class="products">
+                <div class="product">
+                    <img src="product1.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
 
-    <div class="product">
-      <img src="product3.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+                <div class="product">
+                    <img src="product2.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
 
-    <div class="product">
-      <img src="product4.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+                <div class="product">
+                    <img src="product3.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
 
-    <div class="product">
-      <img src="product5.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+                <div class="product">
+                    <img src="product4.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
 
-    <div class="product">
-      <img src="product6.jpg" alt="محصول">
-      <h3>عنوان محصول</h3>
-      <p>زیرعنوان محصول</p>
-      <span>قیمت تقریبی</span>
-    </div>
+                <div class="product">
+                    <img src="product5.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
 
-  </div>
+                <div class="product">
+                    <img src="product6.jpg" alt="محصول">
+                    <h3>عنوان محصول</h3>
+                    <p>زیرعنوان محصول</p>
+                    <span>قیمت تقریبی</span>
+                </div>
+            </div>
 
-  <div class="more">
-    <a href="/products">مشاهده بیشتر</a>
-  </div>
+            <div class="more">
+                <a href="/products">مشاهده بیشتر</a>
+            </div>
+        </section>
 
-</section>
+        <!-- ============================== -->
+        <!-- SECTION 2: Services -->
+        <!-- ============================== -->
+        <section>
+            <h2>ما چه کار می‌کنیم</h2>
 
-<section>
+            <div class="services">
+                <div class="service">
+                    <h3>ایده پردازی</h3>
+                    <p>خلق ایده‌های جدید و طراحی تجربه بازی</p>
+                </div>
 
-  <h2>ما چه کار می‌کنیم</h2>
+                <div class="service">
+                    <h3>طراحی بازی</h3>
+                    <p>طراحی قوانین، کارت‌ها و ساختار بازی</p>
+                </div>
 
-  <div class="services">
+                <div class="service">
+                    <h3>نمونه سازی</h3>
+                    <p>ساخت نمونه اولیه با پرینتر سه بعدی و برش چوب</p>
+                </div>
 
-    <div class="service">
-      <h3>ایده پردازی</h3>
-      <p>خلق ایده‌های جدید و طراحی تجربه بازی</p>
-    </div>
+                <div class="service">
+                    <h3>تولید و فروش</h3>
+                    <p>تولید محدود یا همکاری با تولیدکنندگان</p>
+                </div>
+            </div>
+        </section>
 
-    <div class="service">
-      <h3>طراحی بازی</h3>
-      <p>طراحی قوانین، کارت‌ها و ساختار بازی</p>
-    </div>
+        <!-- ============================== -->
+        <!-- SECTION 3: Why Us -->
+        <!-- ============================== -->
+        <section>
+            <h2>چرا ما</h2>
 
-    <div class="service">
-      <h3>نمونه سازی</h3>
-      <p>ساخت نمونه اولیه با پرینتر سه بعدی و برش چوب</p>
-    </div>
+            <div class="reasons">
+                <div class="reason">
+                    <h3>طراحی خلاقانه</h3>
+                    <p>تمرکز بر تجربه بازی و ایده‌های تازه</p>
+                </div>
 
-    <div class="service">
-      <h3>تولید و فروش</h3>
-      <p>تولید محدود یا همکاری با تولیدکنندگان</p>
-    </div>
+                <div class="reason">
+                    <h3>نمونه‌سازی سریع</h3>
+                    <p>ساخت نمونه اولیه با پرینتر سه‌بعدی و برش چوب</p>
+                </div>
 
-  </div>
+                <div class="reason">
+                    <h3>تولید انعطاف‌پذیر</h3>
+                    <p>امکان تولید محدود یا همکاری با تولیدکنندگان</p>
+                </div>
 
-</section>
+                <div class="reason">
+                    <h3>تمرکز بر کیفیت تجربه</h3>
+                    <p>تست و بهبود بازی قبل از عرضه</p>
+                </div>
+            </div>
+        </section>
 
-<section>
+    </main>
 
-  <h2>چرا ما</h2>
-
-  <div class="reasons">
-
-    <div class="reason">
-      <h3>طراحی خلاقانه</h3>
-      <p>تمرکز بر تجربه بازی و ایده‌های تازه</p>
-    </div>
-
-    <div class="reason">
-      <h3>نمونه‌سازی سریع</h3>
-      <p>ساخت نمونه اولیه با پرینتر سه‌بعدی و برش چوب</p>
-    </div>
-
-    <div class="reason">
-      <h3>تولید انعطاف‌پذیر</h3>
-      <p>امکان تولید محدود یا همکاری با تولیدکنندگان</p>
-    </div>
-
-    <div class="reason">
-      <h3>تمرکز بر کیفیت تجربه</h3>
-      <p>تست و بهبود بازی قبل از عرضه</p>
-    </div>
-
-  </div>
-
-</section>
-
-
-</main>
-
-<%- include('./partials/footer.ejs') %>
-
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

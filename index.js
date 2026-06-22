@@ -1,4 +1,7 @@
+// Load environment variables from .env file
 require('dotenv').config();
+
+// Import required modules
 const express = require('express');
 const helmet = require('helmet');
 const fs = require('fs');
@@ -6,214 +9,225 @@ const path = require('path');
 
 const app = express();
 
-// تنظیمات امنیتی و ویو انجین
-/* app.use(helmet());
- */app.set('view engine', 'ejs');
-app.use('/public',express.static('public'));
+// ==============================
+// MIDDLEWARE & CONFIGURATION
+// ==============================
 
+// Security middleware (currently commented out)
+// app.use(helmet());
 
-/* const allProducts = Array.from({ length: 100 }, (_, i) => ({
-    id: i + 1,
-    name: `محصول شماره ${i + 1}`,
-    price: `${(i + 1) * 10000} تومان`,
-    description: `توضیحات کوتاه برای محصول شماره ${i + 1}`
-})); */
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
 
+// Serve static files from the 'public' directory
+app.use('/public', express.static('public'));
 
-// تابع رندر پیج
+// ==============================
+// HELPER FUNCTIONS
+// ==============================
+
+/**
+ * Render a page with language support
+ * @param {Object} res - Express response object
+ * @param {string} pageName - Base name of the view file
+ * @param {string} lang - Language code ('en' or 'fa')
+ * @param {Object} data - Data to pass to the view
+ */
 const renderPage = (res, pageName, lang, data = {}) => {
-    // اگر زبان انگلیسی بود En و اگر نبود پیشفرض Fa
+    // Determine language suffix: 'En' for English, 'Fa' for Persian (default)
     const suffix = (lang === 'en') ? 'En' : 'Fa';
     const viewName = `${pageName}${suffix}`;
-    console.log('render:',viewName)
-    // رندر با هندل کردن خطای وجود فایل
+    console.log('render:', viewName);
+
+    // Render the view with error handling
     res.render(viewName, { data, lang }, (err, html) => {
         if (err) {
-            // اگر فایل وجود نداشت، به ارور 404 پاس بده
-            //console.log(err)
-            console.log(data.product)
+            // If view file doesn't exist, render 404 page
+            console.log(data.product);
             return res.status(404).render('404', { message: 'Page not found' });
         }
         res.send(html);
     });
 };
 
-// روت‌های اصلی و صفحات استاتیک
-app.get('/', (req, res) => res.redirect('/index'));
-// --- روت‌های اصلاح شده ---
+// ==============================
+// ROUTES - STATIC PAGES
+// ==============================
 
+// Redirect root to index
+app.get('/', (req, res) => res.reedirect('/index'));
+
+// Index page
 app.get('/index', (req, res) => res.redirect('/index/fa'));
 app.get('/index/:lang', (req, res) => renderPage(res, 'index', req.params.lang));
 
+// About Us page
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
-app.get('/aboutus/:lang', (req, res) => {console.log('aboutus'); renderPage(res, 'aboutus', req.params.lang) });
+app.get('/aboutus/:lang', (req, res) => {
+    console.log('aboutus');
+    renderPage(res, 'aboutus', req.params.lang);
+});
 
+// Team page
 app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
 
+// Wholesale page
 app.get('/wholesale', (req, res) => res.redirect('/wholesale/fa'));
 app.get('/wholesale/:lang', (req, res) => renderPage(res, 'wholesale', req.params.lang));
 
+// Products listing page
 app.get('/products', (req, res) => res.redirect('/products/fa'));
 app.get('/products/:lang', (req, res) => {
     renderPage(res, 'products', req.params.lang);
 });
 
-app.get('/product',(req,res)=>{res.redirect('/products')})
+// Individual product page with dynamic ID
+app.get('/product', (req, res) => res.redirect('/products'));
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
 app.get('/product/:id/:lang', (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
 
-    fs.readFile(path.join(__dirname,'data','products.json'),'utf8',(err,data)=>{
-
-        if(err){
-            console.log('err')
+    // Read product data from JSON file
+    fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf8', (err, data) => {
+        if (err) {
+            console.log('err');
             console.error(err.stack);
             return res.status(500).render('err');
         }
 
-        const products = JSON.parse(data)
-        const product = products[id]
+        const products = JSON.parse(data);
+        const product = products[id];
 
-        if(!product){
+        if (!product) {
             return res.status(404).render('404');
         }
 
-        return renderPage(res,'product',req.params.lang,product)
+        return renderPage(res, 'product', req.params.lang, product);
+    });
+});
 
-    })
-})
-
+// Contact page
 app.get('/contact', (req, res) => res.redirect('/contact/fa'));
 app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.lang));
 
+// Trusted clients page
 app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
 
+// Partnership / Career page
 app.get('/partnership', (req, res) => res.redirect('/career/fa'));
-app.get('/partnership/:lang', (req, res) => {console.log('partnership'); renderPage(res, 'partnership', req.params.lang)});
+app.get('/partnership/:lang', (req, res) => {
+    console.log('partnership');
+    renderPage(res, 'partnership', req.params.lang);
+});
 
+// Blogs listing page
 app.get('/blogs', (req, res) => res.redirect('/blogs/fa'));
 app.get('/blogs/:lang', (req, res) => renderPage(res, 'blogs', req.params.lang));
 
-app.get('/blog', (req,res)=>{res.redirect('/blogs')})
+// Individual blog post with dynamic ID
+app.get('/blog', (req, res) => res.redirect('/blogs'));
 app.get('/blog/:id', (req, res) => res.redirect(`/blog/${req.params.id}/fa`));
 app.get('/blog/:id/:lang', (req, res) => {
-    const id = req.params.id
+    const id = req.params.id;
 
-    fs.readFile(path.join(__dirname,'data','blogs.json'),'utf8',(err,data)=>{
-
-        if(err){
-            console.log('err')
+    // Read blog data from JSON file
+    fs.readFile(path.join(__dirname, 'data', 'blogs.json'), 'utf8', (err, data) => {
+        if (err) {
+            console.log('err');
             console.error(err.stack);
             return res.status(500).render('err');
         }
 
-        const blogs = JSON.parse(data)
-        const blog = blogs[id]
+        const blogs = JSON.parse(data);
+        const blog = blogs[id];
 
-        if(!blog){
+        if (!blog) {
             return res.status(404).render('404');
         }
 
-        return renderPage(res,'blog',req.params.lang,blog)
-
-    })
-
-    //renderPage(res, 'blog', req.params.lang)
+        return renderPage(res, 'blog', req.params.lang, blog);
+    });
 });
 
+// FAQ page
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
-app.get('/faq/:lang', (req, res) =>{
-
-    fs.readFile(path.join(__dirname,'data','faqs.json'),'utf8',(err,data)=>{
-
-        if(err){
-            console.log('err')
+app.get('/faq/:lang', (req, res) => {
+    // Read FAQ data from JSON file
+    fs.readFile(path.join(__dirname, 'data', 'faqs.json'), 'utf8', (err, data) => {
+        if (err) {
+            console.log('err');
             console.error(err.stack);
             return res.status(500).render('err');
         }
 
-        const faqs = JSON.parse(data)
+        const faqs = JSON.parse(data);
 
-        if(!faqs){
+        if (!faqs) {
             return res.status(404).render('404');
         }
 
-        return renderPage(res,'faq',req.params.lang,faqs)
-
-    })
-
-    //renderPage(res, 'faq', req.params.lang)
+        return renderPage(res, 'faq', req.params.lang, faqs);
+    });
 });
 
+// Custom order page
 app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
 app.get('/customorder/:lang', (req, res) => renderPage(res, 'customorder', req.params.lang));
 
+// ==============================
+// API ROUTES
+// ==============================
 
-// API برای دریافت محصولات به صورت تکه‌ای (Pagination)
+/**
+ * API endpoint for paginated products
+ * Query params: ?page=1 (default)
+ * Returns 10 products per page with hasMore flag
+ */
 app.get('/api/products', (req, res) => {
-    fs.readFile(path.join(__dirname,'data','products.json'),'utf8',(err,data)=>{
-        const allProducts=Object.values(JSON.parse(data));
+    fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf8', (err, data) => {
+        const allProducts = Object.values(JSON.parse(data));
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // تعداد محصول در هر بار بارگذاری
+        const limit = 10;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
 
-        //const results = allProducts.slice(startIndex, endIndex);
+        // Slice products and add dynamic link for each
         const results = allProducts
             .slice(startIndex, endIndex)
             .map((product, index) => ({
                 ...product,
                 link: `/product/${startIndex + index + 1}/fa`
             }));
-        
-        console.log(results)
+
+        console.log(results);
         res.json({
             products: results,
-            hasMore: endIndex < allProducts.length // آیا هنوز محصولی مانده؟
+            hasMore: endIndex < allProducts.length
         });
-    
-    })
+    });
 });
 
+// Pagination limit for blog posts
+const POSTS_PER_PAGE = 5;
 
-const POSTS_PER_PAGE = 5
+/**
+ * API endpoint for paginated blog posts
+ * @param {number} page - Page number (1-indexed)
+ * Returns 5 posts per page with hasMore flag
+ */
+app.get('/api/blogs/:page', (req, res) => {
+    fs.readFile(path.join(__dirname, 'data', 'blogs.json'), 'utf8', (err, data) => {
+        const blogs = Object.values(JSON.parse(data));
 
+        const page = parseInt(req.params.page) || 1;
+        const start = (page - 1) * POSTS_PER_PAGE;
+        const end = start + POSTS_PER_PAGE;
 
-/* function generatePosts(count){
-
-    const posts = []
-
-    for(let i=1;i<=count;i++){
-
-        posts.push({
-            id:i,
-            title:`عنوان مقاله ${i}`,
-            summary:`این خلاصه‌ای از مقاله شماره ${i} است.`,
-            image:`https://picsum.photos/seed/blog${i}/400/250`,
-            date:`1405/04/${(i%30)+1}`
-        })
-
-    }
-
-    return posts
-}
-
-const blogs = generatePosts(50) */
-
-
-app.get("/api/blogs/:page",(req,res)=>{
-    fs.readFile(path.join(__dirname,'data','blogs.json'),'utf8',(err,data)=>{
-        const blogs=Object.values(JSON.parse(data))
-
-        const page = parseInt(req.params.page) || 1
-
-        const start = (page-1)*POSTS_PER_PAGE
-        const end = start + POSTS_PER_PAGE
-
+        // Slice blogs and add dynamic link for each
         const posts = blogs
-            .slice(start,end)
+            .slice(start, end)
             .map((blog, index) => ({
                 ...blog,
                 link: `/blog/${start + index + 1}/fa`
@@ -221,49 +235,32 @@ app.get("/api/blogs/:page",(req,res)=>{
 
         res.json({
             page,
-            hasMore:end < blogs.length,
+            hasMore: end < blogs.length,
             posts
-        })
-    })
-})
+        });
+    });
+});
 
+// ==============================
+// ERROR HANDLING
+// ==============================
 
-// مدیریت ارور 404 (برای تمام مسیرهایی که پیدا نشدند)
+// 404 handler for undefined routes
 app.use((req, res, next) => {
-    console.log('404')
+    console.log('404');
     res.status(404).render('404');
 });
 
-// مدیریت خطاهای عمومی (500)
+// Global error handler (500 Internal Server Error)
 app.use((err, req, res, next) => {
-    console.log('err')
+    console.log('err');
     console.error(err.stack);
     res.status(500).render('err');
 });
 
+// ==============================
+// START SERVER
+// ==============================
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-
-/*
-
-سید ببین می خواهم که یک سایت بزنم با express.js و ejs و dotenv و helmet که سایت یک شرکت باشه
-می خواهم یک صفحه ی ایندکس یا صفحه ی اول سایت داشته باشه که در مسیر / باشه
-می خواهم یک صفحه ی /aboutus داشته باشه
-می خواهم یک صفحه داشته باشه جهت معرفی اشخاص در اون شرکت مانند مدیر عامل سرمایه گزاران بنیان گذاران
-می خواهم یک صفحه ی نمایش محصولات داشته باشه به صورت لیستی
-می خواهم یک صفحه ی ارطبات با ما داشته باشه
-می خواهم یک صفحه ی کسانی که به ما اعتماد کردند داشته باشه
-می خواهم یک صفحه ی همکاری با ما داشته باشه(برای شرح مزیات همکاری)
-می خواهم برای هر محصول یک صفحه داشته باشه
-می خواهم صفحات ارور برای 404 و دیگر ارور ها داشته باشه
-می خواهم صفحه ی بلاگ و اخبار داشته باشه
-می خواهم صفحه ی سوالات متداول داشته باشه
-
-
-می خواهم قابلیت تغییر زبان داشته باشه(زبان در قسمت مغییر های یو آر ال ثبت بشه و اگر نبود پیشفرض فارسی باشه)
-سیستم ذخیره سازی دیتا ها با جیسون هست
-ادمین پلن رو بعدا می سازم(کاری بهش نداشته باش)
-در بک اند حتما مدیریت ارور خوبی داشته باشه
-
-*/

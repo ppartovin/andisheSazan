@@ -1,60 +1,79 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>ارتباط با ما</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ارتباط با ما</title>
 
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-}
+    <!-- ============================== -->
+    <!-- STYLES -->
+    <!-- ============================== -->
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
 
-main{
-  padding:20px;
-}
+        main {
+            padding: 20px;
+        }
 
-.contact-info{
-  display:flex;
-  flex-direction:column;
-  gap:15px;
-  max-width:500px;
-}
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 500px;
+        }
 
-.contact-item{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-</style>
-
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+    </style>
 </head>
+
 <body>
-<%- include('./partials/header.ejs') %>
-<main>
 
-<h1>ارتباط با ما</h1>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<div class="contact-info">
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-  <div class="contact-item">
-    <strong>ایمیل</strong>
-    <span>info@example.com</span>
-  </div>
+        <!-- Page title -->
+        <h1>ارتباط با ما</h1>
 
-  <div class="contact-item">
-    <strong>شماره تماس</strong>
-    <span>+98 900 000 0000</span>
-  </div>
+        <!-- ============================== -->
+        <!-- CONTACT INFORMATION -->
+        <!-- ============================== -->
+        <div class="contact-info">
+            <div class="contact-item">
+                <strong>ایمیل</strong>
+                <span>info@example.com</span>
+            </div>
 
-  <div class="contact-item">
-    <strong>آدرس</strong>
-    <span>تهران، ایران</span>
-  </div>
+            <div class="contact-item">
+                <strong>شماره تماس</strong>
+                <span>+98 900 000 0000</span>
+            </div>
 
-</div>
-<%- include('./partials/footer.ejs') %>
-</main>
+            <div class="contact-item">
+                <strong>آدرس</strong>
+                <span>تهران، ایران</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

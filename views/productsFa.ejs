@@ -1,42 +1,65 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>لیست محصولات</title>
-<script src="/public/products_Script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیست محصولات</title>
+
+    <!-- ============================== -->
+    <!-- EXTERNAL SCRIPTS - Deferred -->
+    <!-- ============================== -->
+    <script src="/public/products_Script.js" defer></script>
 </head>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<h1>لیست محصولات</h1>
+        <!-- Page title -->
+        <h1>لیست محصولات</h1>
 
-<!-- بخش فیلترها و دسته‌بندی -->
-<aside>
-  <h2>فیلترها</h2>
-  <ul>
-    <li>دسته‌بندی ۱</li>
-    <li>دسته‌بندی ۲</li>
-    <li>دسته‌بندی ۳</li>
-  </ul>
-</aside>
+        <!-- ============================== -->
+        <!-- SIDEBAR: Filters Section -->
+        <!-- ============================== -->
+        <aside>
+            <h2>فیلترها</h2>
+            <ul>
+                <li>دسته‌بندی ۱</li>
+                <li>دسته‌بندی ۲</li>
+                <li>دسته‌بندی ۳</li>
+            </ul>
+        </aside>
 
-<!-- محفظه اصلی که تمام محصولات توسط جاوااسکریپت در اینجا لود می‌شوند -->
-<section id="product-list-container">
-    <!-- محتوا به صورت Infinite Scroll در اینجا قرار می‌گیرد -->
-</section>
+        <!-- ============================== -->
+        <!-- PRODUCT LIST CONTAINER -->
+        <!-- ============================== -->
+        <!-- All products will be loaded here dynamically by JavaScript (Infinite Scroll) -->
+        <section id="product-list-container">
+            <!-- Products will be injected here -->
+        </section>
 
-<!-- المان هدف برای تشخیص رسیدن کاربر به انتهای صفحه و شروع بارگذاری جدید -->
-<div id="infinite-scroll-anchor">
-    <p>در حال بارگذاری محصولات...</p>
-</div>
+        <!-- ============================== -->
+        <!-- INFINITE SCROLL ANCHOR -->
+        <!-- ============================== -->
+        <!-- This element triggers loading more products when scrolled into view -->
+        <div id="infinite-scroll-anchor">
+            <p>در حال بارگذاری محصولات...</p>
+        </div>
 
-</main>
+    </main>
 
-<%- include('./partials/footer.ejs') %>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

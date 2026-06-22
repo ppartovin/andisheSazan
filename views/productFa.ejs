@@ -1,162 +1,182 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title><%= data.title %></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= data.title %></title>
+
+    <!-- ============================== -->
+    <!-- STYLES -->
+    <!-- ============================== -->
+    <style>
+        /* Shops container - flex wrap layout */
+        .shops {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Individual shop item */
+        .shop {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Shop icon image */
+        .shop img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Description styles */
+        .description-wrapper {
+            position: relative;
+        }
+
+        #short-desc {
+            display: block;
+        }
+
+        #full-desc {
+            display: none;
+        }
+
+        #more,
+        #less {
+            margin-top: 10px;
+            cursor: pointer;
+            padding: 8px 20px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        #more:hover,
+        #less:hover {
+            background: #e0e0e0;
+        }
+
+        #less {
+            display: none;
+        }
+    </style>
+
+    <!-- ============================== -->
+    <!-- INLINE SCRIPT: Pass data BEFORE external script -->
+    <!-- ============================== -->
+    <script>
+        // Pass server-side data to global scope BEFORE loading external script
+        window.productData = {
+            images: <%- JSON.stringify(data.image) %>
+        };
+    </script>
+
+    <!-- ============================== -->
+    <!-- EXTERNAL SCRIPTS - Deferred -->
+    <!-- ============================== -->
+    <script src="/public/product_Script.js" defer></script>
 </head>
-
-<style>
-.shops{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-
-.shop{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  text-decoration:none;
-  color:inherit;
-}
-
-.shop img{
-  width:24px;
-  height:24px;
-}
-</style>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<section class="product-gallery">
+        <!-- ============================== -->
+        <!-- SECTION: Product Gallery -->
+        <!-- ============================== -->
+        <section class="product-gallery">
+            <button id="prev">←</button>
+            <img id="product-image" src="<%= data.image[0] %>" alt="product">
+            <button id="next">→</button>
+        </section>
 
-<button id="prev">←</button>
+        <!-- ============================== -->
+        <!-- SECTION: Product Header -->
+        <!-- ============================== -->
+        <section class="product-header">
+            <h1 class="product-title"><%= data.title %></h1>
+            <p class="product-subtitle"><%= data.subtitle %></p>
+        </section>
 
-<img id="product-image" src="<%= data.image[0] %>" alt="product">
+        <!-- ============================== -->
+        <!-- SECTION: Product Shops -->
+        <!-- ============================== -->
+        <section class="product-shops">
+            <div class="shops">
+                <% data.shops.forEach(shop => { %>
+                    <a class="shop" href="<%= shop.link %>" target="_blank">
+                        <img src="<%= shop.image %>" alt="">
+                        <span><%= shop.name %></span>
+                    </a>
+                <% }) %>
+            </div>
+        </section>
 
-<button id="next">→</button>
+        <!-- ============================== -->
+        <!-- SECTION: Product Description -->
+        <!-- ============================== -->
+        <section class="product-description">
+            <h2>توضیحات</h2>
 
-</section>
+            <div class="description-wrapper">
+                <!-- Short description (first 150 characters) -->
+                <p id="short-desc">
+                    <%- data.description.substring(0, 150) + (data.description.length > 150 ? '...' : '') %>
+                </p>
 
+                <!-- Full description (hidden by default) -->
+                <div id="full-desc">
+                    <p><%= data.description %></p>
+                </div>
 
-<section class="product-header">
+                <!-- Toggle buttons -->
+                <% if (data.description.length > 150) { %>
+                    <button id="more">بیشتر ▼</button>
+                    <button id="less" style="display:none;">کمتر ▲</button>
+                <% } %>
+            </div>
+        </section>
 
-<h1 class="product-title"><%= data.title %></h1>
-<p class="product-subtitle"><%= data.subtitle %></p>
+        <!-- ============================== -->
+        <!-- SECTION: Product Features -->
+        <!-- ============================== -->
+        <section class="product-features">
+            <h2>ویژگی‌ها</h2>
 
-</section>
+            <table>
+                <tr>
+                    <th>ویژگی</th>
+                    <th>توضیح</th>
+                </tr>
 
+                <% Object.entries(data.properties).forEach(([key, value]) => { %>
+                    <tr>
+                        <td><%= key %></td>
+                        <td><%= value %></td>
+                    </tr>
+                <% }) %>
+            </table>
+        </section>
 
-<section class="product-shops">
+    </main>
 
-<div class="shops">
-
-<% data.shops.forEach(shop => { %>
-
-<a class="shop" href="<%= shop.link %>" target="_blank">
-  <img src="<%= shop.image %>" alt="">
-  <span><%= shop.name %></span>
-</a>
-
-<% }) %>
-
-</div>
-
-</section>
-
-
-<section class="product-description">
-
-<h2>توضیحات</h2>
-
-<p id="short-desc">
-<%= data.description %>
-</p>
-
-<div id="full-desc" style="display:none;">
-<p><%= data.description %></p>
-</div>
-
-<button id="more">بیشتر</button>
-<button id="less" style="display:none;">کمتر</button>
-
-</section>
-
-
-<section class="product-features">
-
-<h2>ویژگی‌ها</h2>
-
-<table>
-
-<tr>
-<th>ویژگی</th>
-<th>توضیح</th>
-</tr>
-
-<% Object.entries(data.properties).forEach(([key,value]) => { %>
-
-<tr>
-<td><%= key %></td>
-<td><%= value %></td>
-</tr>
-
-<% }) %>
-
-</table>
-
-</section>
-
-</main>
-
-<%- include('./partials/footer.ejs') %>
-
-
-<script>
-
-const images = <%- JSON.stringify(data.image) %>
-
-let index = 0
-
-const img = document.getElementById("product-image")
-
-document.getElementById("next").onclick = () => {
-  index++
-  if(index >= images.length) index = 0
-  img.src = images[index]
-}
-
-document.getElementById("prev").onclick = () => {
-  index--
-  if(index < 0) index = images.length - 1
-  img.src = images[index]
-}
-
-
-const more = document.getElementById("more")
-const less = document.getElementById("less")
-const shortDesc = document.getElementById("short-desc")
-const fullDesc = document.getElementById("full-desc")
-
-more.onclick = () => {
-  shortDesc.style.display = "none"
-  fullDesc.style.display = "block"
-  more.style.display = "none"
-  less.style.display = "inline"
-}
-
-less.onclick = () => {
-  shortDesc.style.display = "block"
-  fullDesc.style.display = "none"
-  more.style.display = "inline"
-  less.style.display = "none"
-}
-
-</script>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>

@@ -1,102 +1,113 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>اعضای تیم</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اعضای تیم</title>
 
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-}
+    <!-- ============================== -->
+    <!-- STYLES -->
+    <!-- ============================== -->
+    <style>
+        /* Reset body styles */
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
 
-main{
-  padding:20px;
-  max-width:800px;
-}
+        /* Main content container */
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-.team{
-  display:flex;
-  flex-direction:column;
-  gap:30px;
-}
+        /* Team section - flex column layout */
+        .team {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
 
-.member{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+        /* Individual member card */
+        .member {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-.member img{
-  width:200px;
-  height:auto;
-}
-</style>
-
+        /* Member profile image */
+        .member img {
+            width: 200px;
+            height: auto;
+            border-radius: 12px;
+        }
+    </style>
 </head>
 
 <body>
 
-<%- include('./partials/header.ejs') %>
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/header.ejs') %>
 
-<main>
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
 
-<h1>اعضای تیم</h1>
+        <!-- Page title -->
+        <h1>اعضای تیم</h1>
 
-<p>
-در این بخش می‌توانید با اعضای تیم شرکت آشنا شوید و نقش هر کدام را در مجموعه ببینید.
-</p>
+        <!-- Introduction paragraph -->
+        <p>
+            در این بخش می‌توانید با اعضای تیم شرکت آشنا شوید و نقش هر کدام را در مجموعه ببینید.
+        </p>
 
-<section class="team">
+        <!-- ============================== -->
+        <!-- TEAM SECTION -->
+        <!-- ============================== -->
+        <section class="team">
 
-<article class="member">
+            <!-- Team member 1 -->
+            <article class="member">
+                <img src="https://via.placeholder.com/200x200" alt="علی رضایی">
+                <h2>علی رضایی</h2>
+                <p>مدیر فنی</p>
+                <p>
+                    علی مسئول هدایت تیم فنی شرکت است و در طراحی و توسعه سیستم‌های نرم‌افزاری نقش اصلی دارد.
+                </p>
+            </article>
 
-<img src="https://via.placeholder.com/200x200" alt="علی رضایی">
+            <!-- Team member 2 -->
+            <article class="member">
+                <img src="https://via.placeholder.com/200x200" alt="سارا محمدی">
+                <h2>سارا محمدی</h2>
+                <p>طراح رابط کاربری</p>
+                <p>
+                    سارا روی طراحی رابط کاربری و تجربه کاربری محصولات کار می‌کند.
+                </p>
+            </article>
 
-<h2>علی رضایی</h2>
+            <!-- Team member 3 -->
+            <article class="member">
+                <img src="https://via.placeholder.com/200x200" alt="محمد کریمی">
+                <h2>محمد کریمی</h2>
+                <p>توسعه‌دهنده بک‌اند</p>
+                <p>
+                    محمد مسئول توسعه سرویس‌های سمت سرور و زیرساخت‌های نرم‌افزاری است.
+                </p>
+            </article>
 
-<p>مدیر فنی</p>
+        </section>
 
-<p>
-علی مسئول هدایت تیم فنی شرکت است و در طراحی و توسعه سیستم‌های نرم‌افزاری نقش اصلی دارد.
-</p>
+    </main>
 
-</article>
-
-
-<article class="member">
-
-<img src="https://via.placeholder.com/200x200" alt="سارا محمدی">
-
-<h2>سارا محمدی</h2>
-
-<p>طراح رابط کاربری</p>
-
-<p>
-سارا روی طراحی رابط کاربری و تجربه کاربری محصولات کار می‌کند.
-</p>
-
-</article>
-
-
-<article class="member">
-
-<img src="https://via.placeholder.com/200x200" alt="محمد کریمی">
-
-<h2>محمد کریمی</h2>
-
-<p>توسعه‌دهنده بک‌اند</p>
-
-<p>
-محمد مسئول توسعه سرویس‌های سمت سرور و زیرساخت‌های نرم‌افزاری است.
-</p>
-
-</article>
-
-</section>
-
-</main>
-<%- include('./partials/footer.ejs') %>
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footer.ejs') %>
 
 </body>
 </html>
