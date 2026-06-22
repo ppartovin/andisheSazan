@@ -1,6 +1,8 @@
 {
   "1": {
     "title": "چگونه یک بازی رومیزی خوب انتخاب کنیم",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "علی رضایی",
     "date": "۱۴۰۵/۰۴/۰۱",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -8,6 +10,8 @@
   },
   "2": {
     "title": "تاریخچه کوتاه بازی‌های رومیزی",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "مریم قاسمی",
     "date": "۱۴۰۵/۰۴/۰۳",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -15,6 +19,8 @@
   },
   "3": {
     "title": "چرا بازی گروهی برای خانواده مفید است",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "حسین احمدی",
     "date": "۱۴۰۵/۰۴/۰۵",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -22,6 +28,8 @@
   },
   "4": {
     "title": "۵ نکته برای یادگیری سریع قوانین بازی",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "سارا محمدی",
     "date": "۱۴۰۵/۰۴/۰۷",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -29,6 +37,8 @@
   },
   "5": {
     "title": "بازی‌های رومیزی مناسب مهمانی",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "رضا موسوی",
     "date": "۱۴۰۵/۰۴/۱۰",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -36,6 +46,8 @@
   },
   "6": {
     "title": "چگونه یک شب بازی دوستانه برگزار کنیم",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "نگار کریمی",
     "date": "۱۴۰۵/۰۴/۱۲",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -43,6 +55,8 @@
   },
   "7": {
     "title": "تفاوت بازی‌های استراتژیک و خانوادگی",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "امیر توکلی",
     "date": "۱۴۰۵/۰۴/۱۵",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -50,6 +64,8 @@
   },
   "8": {
     "title": "چرا بازی فکری برای کودکان مهم است",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
+
     "writer": "لیلا شریفی",
     "date": "۱۴۰۵/۰۴/۱۸",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -57,6 +73,7 @@
   },
   "9": {
     "title": "راهنمای نگهداری از بازی‌های رومیزی",
+        "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
     "writer": "محمد صادقی",
     "date": "۱۴۰۵/۰۴/۲۰",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",
@@ -64,6 +81,7 @@
   },
   "10": {
     "title": "آینده صنعت بازی‌های رومیزی",
+    "subtitle":"توضیحات کوتاه در باره ی مقاله و تشویق به خواندن",
     "writer": "پارسا نادری",
     "date": "۱۴۰۵/۰۴/۲۳",
     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOqSNMpeKNULffetaINhXK7_gqByH2tMPfXduSqlGO6A&s=10",

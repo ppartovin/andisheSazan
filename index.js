@@ -181,43 +181,50 @@ app.get('/api/products', (req, res) => {
 const POSTS_PER_PAGE = 5
 
 
-function generatePosts(count){
+/* function generatePosts(count){
 
-const posts = []
+    const posts = []
 
-for(let i=1;i<=count;i++){
+    for(let i=1;i<=count;i++){
 
-posts.push({
-id:i,
-title:`عنوان مقاله ${i}`,
-summary:`این خلاصه‌ای از مقاله شماره ${i} است.`,
-image:`https://picsum.photos/seed/blog${i}/400/250`,
-date:`1405/04/${(i%30)+1}`
-})
+        posts.push({
+            id:i,
+            title:`عنوان مقاله ${i}`,
+            summary:`این خلاصه‌ای از مقاله شماره ${i} است.`,
+            image:`https://picsum.photos/seed/blog${i}/400/250`,
+            date:`1405/04/${(i%30)+1}`
+        })
 
+    }
+
+    return posts
 }
 
-return posts
-}
-
-const blogs = generatePosts(50)
+const blogs = generatePosts(50) */
 
 
 app.get("/api/blogs/:page",(req,res)=>{
+    fs.readFile(path.join(__dirname,'data','blogs.json'),'utf8',(err,data)=>{
+        const blogs=Object.values(JSON.parse(data))
 
-const page = parseInt(req.params.page) || 1
+        const page = parseInt(req.params.page) || 1
 
-const start = (page-1)*POSTS_PER_PAGE
-const end = start + POSTS_PER_PAGE
+        const start = (page-1)*POSTS_PER_PAGE
+        const end = start + POSTS_PER_PAGE
 
-const posts = blogs.slice(start,end)
+        const posts = blogs
+            .slice(start,end)
+            .map((blog, index) => ({
+                ...blog,
+                link: `/blog/${start + index + 1}/fa`
+            }));
 
-res.json({
-page,
-hasMore:end < blogs.length,
-posts
-})
-
+        res.json({
+            page,
+            hasMore:end < blogs.length,
+            posts
+        })
+    })
 })
 
 

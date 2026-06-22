@@ -65,9 +65,9 @@ div.className = "post"
 div.innerHTML = `
 <img src="${post.image}">
 <h3>${post.title}</h3>
-<p>${post.summary}</p>
+<p>${post.subtitle}</p>
 <span>${post.date}</span>
-<a href="/blog/${post.id}">ادامه مطلب</a>
+<a href="${post.link}">ادامه مطلب</a>
 `
 
 container.appendChild(div)
