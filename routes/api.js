@@ -19,8 +19,15 @@ const POSTS_PER_PAGE = 5;
 // ==============================
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 // ==============================
@@ -31,6 +38,15 @@ const readJsonFile = async (filePath) => {
 router.get('/products', async (req, res) => {
     try {
         const allProducts = Object.values(await readJsonFile(PATHS.products));
+        
+        if (!allProducts || allProducts.length === 0) {
+            return res.status(404).json({ 
+                error: 'No products found',
+                products: [],
+                hasMore: false
+            });
+        }
+
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const start = (page - 1) * limit;
@@ -45,11 +61,16 @@ router.get('/products', async (req, res) => {
 
         res.json({
             products: results,
-            hasMore: end < allProducts.length
+            hasMore: end < allProducts.length,
+            total: allProducts.length,
+            page: page
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        console.error('API Products error:', err.message);
+        res.status(500).json({ 
+            error: 'Server error',
+            message: 'خطا در بارگذاری محصولات'
+        });
     }
 });
 
@@ -57,6 +78,15 @@ router.get('/products', async (req, res) => {
 router.get('/blogs/:page', async (req, res) => {
     try {
         const blogs = Object.values(await readJsonFile(PATHS.blogs));
+        
+        if (!blogs || blogs.length === 0) {
+            return res.status(404).json({
+                error: 'No blogs found',
+                posts: [],
+                hasMore: false
+            });
+        }
+
         const page = parseInt(req.params.page) || 1;
         const start = (page - 1) * POSTS_PER_PAGE;
         const end = start + POSTS_PER_PAGE;
@@ -71,11 +101,15 @@ router.get('/blogs/:page', async (req, res) => {
         res.json({
             page,
             hasMore: end < blogs.length,
+            total: blogs.length,
             posts
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        console.error('API Blogs error:', err.message);
+        res.status(500).json({ 
+            error: 'Server error',
+            message: 'خطا در بارگذاری بلاگ‌ها'
+        });
     }
 });
 

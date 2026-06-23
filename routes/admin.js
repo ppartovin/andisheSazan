@@ -46,12 +46,19 @@ const checkToken = (req, res, next) => {
 };
 
 // ==============================
-// READ HELPERS
+// HELPERS
 // ==============================
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 // ==============================
@@ -75,19 +82,32 @@ router.get('/', (req, res) => {
 
 // Login page
 router.get('/login', (req, res) => {
-    const token = req.cookies?.adminToken;
+    try {
+        const token = req.cookies?.adminToken;
 
-    if (token && verifyToken(token)) {
-        return res.redirect('/admin/panel');
+        if (token && verifyToken(token)) {
+            return res.redirect('/admin/panel');
+        }
+
+        res.render('adminPanel/adminLogin', { error: null });
+    } catch (err) {
+        console.error('Login page error:', err.message);
+        res.status(500).render('err');
     }
-
-    res.render('adminPanel/adminLogin', { error: null });
 });
 
 // Login handler
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+
+        // اعتبارسنجی ورودی
+        if (!username || !password) {
+            return res.render('adminPanel/adminLogin', { 
+                error: 'نام کاربری و رمز عبور الزامی است' 
+            });
+        }
+
         const admins = await readJsonFile(ADMINS_PATH);
         const admin = admins.find(u => u.username === username);
 
@@ -113,20 +133,30 @@ router.post('/login', async (req, res) => {
         res.redirect('/admin/panel');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Login error:', err.message);
+        res.status(500).render('err', { message: 'خطا در ورود به سیستم' });
     }
 });
 
 // Admin panel (protected)
 router.get('/panel', checkToken, (req, res) => {
-    res.render('adminPanel/adminPanel', { username: req.user.username });
+    try {
+        res.render('adminPanel/adminPanel', { username: req.user.username });
+    } catch (err) {
+        console.error('Panel error:', err.message);
+        res.status(500).render('err');
+    }
 });
 
 // Logout
 router.get('/logout', (req, res) => {
-    res.clearCookie('adminToken');
-    res.redirect('/admin/login');
+    try {
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
+    } catch (err) {
+        console.error('Logout error:', err.message);
+        res.status(500).render('err');
+    }
 });
 
 module.exports = router;

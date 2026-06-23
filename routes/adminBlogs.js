@@ -18,12 +18,23 @@ const BLOGS_PATH = path.join(DATA_DIR, 'blogs.json');
 // ==============================
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 const writeJsonFile = async (filePath, data) => {
-    await writeFile(filePath, JSON.stringify(data, null, 2));
+    try {
+        await writeFile(filePath, JSON.stringify(data, null, 2));
+    } catch (err) {
+        throw new Error(`Failed to write file: ${filePath}`);
+    }
 };
 
 const reindexItems = (items) => {
@@ -78,14 +89,19 @@ router.get('/', checkToken, async (req, res) => {
 
         res.render('adminPanel/adminBlogs', { blogs });
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Blogs list error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری لیست بلاگ‌ها' });
     }
 });
 
 // Show add form
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminPanel/adminBlogsAdd', { error: null });
+    try {
+        res.render('adminPanel/adminBlogsAdd', { error: null });
+    } catch (err) {
+        console.error('Add form error:', err.message);
+        res.status(500).render('err');
+    }
 });
 
 // Add new blog
@@ -93,8 +109,23 @@ router.post('/add', checkToken, async (req, res) => {
     try {
         const { title, subtitle, writer, date, image, text } = req.body;
 
+        // اعتبارسنجی
         if (!title || title.trim() === '') {
-            return res.render('adminPanel/adminBlogsAdd', { error: 'عنوان بلاگ الزامی است' });
+            return res.render('adminPanel/adminBlogsAdd', { 
+                error: 'عنوان بلاگ الزامی است' 
+            });
+        }
+
+        if (title.length > 200) {
+            return res.render('adminPanel/adminBlogsAdd', { 
+                error: 'عنوان بلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد' 
+            });
+        }
+
+        if (text && text.length > 50000) {
+            return res.render('adminPanel/adminBlogsAdd', { 
+                error: 'متن بلاگ نباید بیشتر از ۵۰۰۰۰ کاراکتر باشد' 
+            });
         }
 
         const blogs = await readJsonFile(BLOGS_PATH);
@@ -104,11 +135,11 @@ router.post('/add', checkToken, async (req, res) => {
 
         blogs[nextId] = {
             title: title.trim(),
-            subtitle: subtitle || '',
-            writer: writer || '',
-            date: date || '',
-            image: image || '',
-            text: text || ''
+            subtitle: subtitle?.trim() || '',
+            writer: writer?.trim() || '',
+            date: date?.trim() || '',
+            image: image?.trim() || '',
+            text: text?.trim() || ''
         };
 
         const reindexedBlogs = reindexItems(blogs);
@@ -117,8 +148,8 @@ router.post('/add', checkToken, async (req, res) => {
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Add blog error:', err.message);
+        res.status(500).render('err', { message: 'خطا در افزودن بلاگ' });
     }
 });
 
@@ -126,6 +157,12 @@ router.post('/add', checkToken, async (req, res) => {
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const blogId = req.params.id;
+
+        // اعتبارسنجی ID
+        if (!blogId || isNaN(parseInt(blogId))) {
+            return res.redirect('/admin/blogs');
+        }
+
         const blogs = await readJsonFile(BLOGS_PATH);
         const blog = blogs[blogId];
 
@@ -133,11 +170,13 @@ router.get('/edit/:id', checkToken, async (req, res) => {
             return res.redirect('/admin/blogs');
         }
 
-        res.render('adminPanel/adminBlogsEdit', { blog: { id: blogId, ...blog } });
+        res.render('adminPanel/adminBlogsEdit', { 
+            blog: { id: blogId, ...blog } 
+        });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Edit form error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
     }
 });
 
@@ -147,20 +186,40 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const blogId = req.params.id;
         const { title, subtitle, writer, date, image, text } = req.body;
 
+        // اعتبارسنجی ID
+        if (!blogId || isNaN(parseInt(blogId))) {
+            return res.redirect('/admin/blogs');
+        }
+
         const blogs = await readJsonFile(BLOGS_PATH);
 
         if (!blogs[blogId]) {
             return res.redirect('/admin/blogs');
         }
 
+        // اعتبارسنجی عنوان
+        if (title && title.length > 200) {
+            return res.render('adminPanel/adminBlogsEdit', { 
+                blog: { id: blogId, ...blogs[blogId] },
+                error: 'عنوان بلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد'
+            });
+        }
+
+        if (text && text.length > 50000) {
+            return res.render('adminPanel/adminBlogsEdit', { 
+                blog: { id: blogId, ...blogs[blogId] },
+                error: 'متن بلاگ نباید بیشتر از ۵۰۰۰۰ کاراکتر باشد'
+            });
+        }
+
         blogs[blogId] = {
             ...blogs[blogId],
-            title: title || blogs[blogId].title,
-            subtitle: subtitle || blogs[blogId].subtitle || '',
-            writer: writer || blogs[blogId].writer || '',
-            date: date || blogs[blogId].date || '',
-            image: image || blogs[blogId].image || '',
-            text: text || blogs[blogId].text || ''
+            title: title?.trim() || blogs[blogId].title,
+            subtitle: subtitle?.trim() || blogs[blogId].subtitle || '',
+            writer: writer?.trim() || blogs[blogId].writer || '',
+            date: date?.trim() || blogs[blogId].date || '',
+            image: image?.trim() || blogs[blogId].image || '',
+            text: text?.trim() || blogs[blogId].text || ''
         };
 
         const reindexedBlogs = reindexItems(blogs);
@@ -169,8 +228,8 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Update blog error:', err.message);
+        res.status(500).render('err', { message: 'خطا در ویرایش بلاگ' });
     }
 });
 
@@ -178,7 +237,17 @@ router.post('/edit/:id', checkToken, async (req, res) => {
 router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const blogId = req.params.id;
+
+        // اعتبارسنجی ID
+        if (!blogId || isNaN(parseInt(blogId))) {
+            return res.redirect('/admin/blogs');
+        }
+
         const blogs = await readJsonFile(BLOGS_PATH);
+
+        if (!blogs[blogId]) {
+            return res.redirect('/admin/blogs');
+        }
 
         delete blogs[blogId];
 
@@ -188,8 +257,8 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Delete blog error:', err.message);
+        res.status(500).render('err', { message: 'خطا در حذف بلاگ' });
     }
 });
 

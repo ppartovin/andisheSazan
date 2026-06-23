@@ -18,12 +18,23 @@ const PRODUCTS_PATH = path.join(DATA_DIR, 'products.json');
 // ==============================
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 const writeJsonFile = async (filePath, data) => {
-    await writeFile(filePath, JSON.stringify(data, null, 2));
+    try {
+        await writeFile(filePath, JSON.stringify(data, null, 2));
+    } catch (err) {
+        throw new Error(`Failed to write file: ${filePath}`);
+    }
 };
 
 const reindexItems = (items) => {
@@ -78,14 +89,19 @@ router.get('/', checkToken, async (req, res) => {
 
         res.render('adminPanel/adminProducts', { products });
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Products list error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری لیست محصولات' });
     }
 });
 
 // Show add form
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminPanel/adminProductsAdd', { error: null });
+    try {
+        res.render('adminPanel/adminProductsAdd', { error: null });
+    } catch (err) {
+        console.error('Add form error:', err.message);
+        res.status(500).render('err');
+    }
 });
 
 // Add new product
@@ -93,8 +109,17 @@ router.post('/add', checkToken, async (req, res) => {
     try {
         const { title, subtitle, price, description, image } = req.body;
 
+        // اعتبارسنجی
         if (!title || title.trim() === '') {
-            return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
+            return res.render('adminPanel/adminProductsAdd', { 
+                error: 'عنوان محصول الزامی است' 
+            });
+        }
+
+        if (title.length > 200) {
+            return res.render('adminPanel/adminProductsAdd', { 
+                error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' 
+            });
         }
 
         const products = await readJsonFile(PRODUCTS_PATH);
@@ -104,10 +129,10 @@ router.post('/add', checkToken, async (req, res) => {
 
         products[nextId] = {
             title: title.trim(),
-            subtitle: subtitle || '',
-            price: price || '',
-            description: description || '',
-            image: image || ''
+            subtitle: subtitle?.trim() || '',
+            price: price?.trim() || '',
+            description: description?.trim() || '',
+            image: image?.trim() || ''
         };
 
         const reindexedProducts = reindexItems(products);
@@ -116,8 +141,8 @@ router.post('/add', checkToken, async (req, res) => {
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Add product error:', err.message);
+        res.status(500).render('err', { message: 'خطا در افزودن محصول' });
     }
 });
 
@@ -125,6 +150,12 @@ router.post('/add', checkToken, async (req, res) => {
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
+        
+        // اعتبارسنجی ID
+        if (!productId || isNaN(parseInt(productId))) {
+            return res.redirect('/admin/products');
+        }
+
         const products = await readJsonFile(PRODUCTS_PATH);
         const product = products[productId];
 
@@ -132,11 +163,13 @@ router.get('/edit/:id', checkToken, async (req, res) => {
             return res.redirect('/admin/products');
         }
 
-        res.render('adminPanel/adminProductsEdit', { product: { id: productId, ...product } });
+        res.render('adminPanel/adminProductsEdit', { 
+            product: { id: productId, ...product } 
+        });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Edit form error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
     }
 });
 
@@ -146,19 +179,32 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
         const { title, subtitle, price, description, image } = req.body;
 
+        // اعتبارسنجی ID
+        if (!productId || isNaN(parseInt(productId))) {
+            return res.redirect('/admin/products');
+        }
+
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
             return res.redirect('/admin/products');
         }
 
+        // اعتبارسنجی عنوان
+        if (title && title.length > 200) {
+            return res.render('adminPanel/adminProductsEdit', { 
+                product: { id: productId, ...products[productId] },
+                error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد'
+            });
+        }
+
         products[productId] = {
             ...products[productId],
-            title: title || products[productId].title,
-            subtitle: subtitle || products[productId].subtitle || '',
-            price: price || products[productId].price || '',
-            description: description || products[productId].description || '',
-            image: image || products[productId].image || ''
+            title: title?.trim() || products[productId].title,
+            subtitle: subtitle?.trim() || products[productId].subtitle || '',
+            price: price?.trim() || products[productId].price || '',
+            description: description?.trim() || products[productId].description || '',
+            image: image?.trim() || products[productId].image || ''
         };
 
         const reindexedProducts = reindexItems(products);
@@ -167,8 +213,8 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Update product error:', err.message);
+        res.status(500).render('err', { message: 'خطا در ویرایش محصول' });
     }
 });
 
@@ -176,7 +222,17 @@ router.post('/edit/:id', checkToken, async (req, res) => {
 router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
+
+        // اعتبارسنجی ID
+        if (!productId || isNaN(parseInt(productId))) {
+            return res.redirect('/admin/products');
+        }
+
         const products = await readJsonFile(PRODUCTS_PATH);
+
+        if (!products[productId]) {
+            return res.redirect('/admin/products');
+        }
 
         delete products[productId];
 
@@ -186,8 +242,8 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Delete product error:', err.message);
+        res.status(500).render('err', { message: 'خطا در حذف محصول' });
     }
 });
 

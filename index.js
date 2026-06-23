@@ -15,8 +15,8 @@ const app = express();
 // ==============================
 
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(helmet());
 
 // View engine
@@ -56,8 +56,15 @@ const renderPage = (res, pageName, lang, data = {}) => {
 };
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 // ==============================
@@ -71,7 +78,6 @@ app.use('/admin', adminRoutes);
 // API routes
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
-
 
 // Redirects
 app.get('/', (req, res) => res.redirect('/index'));
@@ -95,26 +101,54 @@ app.get('/index/:lang', async (req, res) => {
 
         renderPage(res, 'index', req.params.lang, { topProducts });
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Index page error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری صفحه اصلی' });
     }
 });
 
 // About Us
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
-app.get('/aboutus/:lang', (req, res) => renderPage(res, 'aboutus', req.params.lang));
+app.get('/aboutus/:lang', (req, res) => {
+    try {
+        renderPage(res, 'aboutus', req.params.lang);
+    } catch (err) {
+        console.error('AboutUs error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Team
 app.get('/team', (req, res) => res.redirect('/team/fa'));
-app.get('/team/:lang', (req, res) => renderPage(res, 'team', req.params.lang));
+app.get('/team/:lang', (req, res) => {
+    try {
+        renderPage(res, 'team', req.params.lang);
+    } catch (err) {
+        console.error('Team error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Wholesale
 app.get('/wholesale', (req, res) => res.redirect('/wholesale/fa'));
-app.get('/wholesale/:lang', (req, res) => renderPage(res, 'wholesale', req.params.lang));
+app.get('/wholesale/:lang', (req, res) => {
+    try {
+        renderPage(res, 'wholesale', req.params.lang);
+    } catch (err) {
+        console.error('Wholesale error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Products listing
 app.get('/products', (req, res) => res.redirect('/products/fa'));
-app.get('/products/:lang', (req, res) => renderPage(res, 'products', req.params.lang));
+app.get('/products/:lang', (req, res) => {
+    try {
+        renderPage(res, 'products', req.params.lang);
+    } catch (err) {
+        console.error('Products listing error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Single product
 app.get('/product', (req, res) => res.redirect('/products'));
@@ -125,31 +159,59 @@ app.get('/product/:id/:lang', async (req, res) => {
         const product = products[req.params.id];
 
         if (!product) {
-            return res.status(404).render('404');
+            return res.status(404).render('404', { message: 'محصول یافت نشد' });
         }
 
         renderPage(res, 'product', req.params.lang, product);
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Product error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری محصول' });
     }
 });
 
 // Contact
 app.get('/contact', (req, res) => res.redirect('/contact/fa'));
-app.get('/contact/:lang', (req, res) => renderPage(res, 'contact', req.params.lang));
+app.get('/contact/:lang', (req, res) => {
+    try {
+        renderPage(res, 'contact', req.params.lang);
+    } catch (err) {
+        console.error('Contact error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Trusted
 app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
-app.get('/trusted/:lang', (req, res) => renderPage(res, 'trusted', req.params.lang));
+app.get('/trusted/:lang', (req, res) => {
+    try {
+        renderPage(res, 'trusted', req.params.lang);
+    } catch (err) {
+        console.error('Trusted error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Partnership
 app.get('/partnership', (req, res) => res.redirect('/partnership/fa'));
-app.get('/partnership/:lang', (req, res) => renderPage(res, 'partnership', req.params.lang));
+app.get('/partnership/:lang', (req, res) => {
+    try {
+        renderPage(res, 'partnership', req.params.lang);
+    } catch (err) {
+        console.error('Partnership error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Blogs listing
 app.get('/blogs', (req, res) => res.redirect('/blogs/fa'));
-app.get('/blogs/:lang', (req, res) => renderPage(res, 'blogs', req.params.lang));
+app.get('/blogs/:lang', (req, res) => {
+    try {
+        renderPage(res, 'blogs', req.params.lang);
+    } catch (err) {
+        console.error('Blogs listing error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // Single blog
 app.get('/blog', (req, res) => res.redirect('/blogs'));
@@ -160,13 +222,13 @@ app.get('/blog/:id/:lang', async (req, res) => {
         const blog = blogs[req.params.id];
 
         if (!blog) {
-            return res.status(404).render('404');
+            return res.status(404).render('404', { message: 'بلاگ یافت نشد' });
         }
 
         renderPage(res, 'blog', req.params.lang, blog);
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Blog error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری بلاگ' });
     }
 });
 
@@ -176,32 +238,41 @@ app.get('/faq/:lang', async (req, res) => {
     try {
         const faqs = await readJsonFile(PATHS.faqs);
 
-        if (!faqs) {
-            return res.status(404).render('404');
+        if (!faqs || Object.keys(faqs).length === 0) {
+            return res.status(404).render('404', { message: 'سوالی یافت نشد' });
         }
 
         renderPage(res, 'faq', req.params.lang, faqs);
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('FAQ error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری سوالات متداول' });
     }
 });
 
 // Custom order
 app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
-app.get('/customorder/:lang', (req, res) => renderPage(res, 'customorder', req.params.lang));
+app.get('/customorder/:lang', (req, res) => {
+    try {
+        renderPage(res, 'customorder', req.params.lang);
+    } catch (err) {
+        console.error('Custom order error:', err.message);
+        res.status(500).render('err');
+    }
+});
 
 // ==============================
 // ERROR HANDLING
 // ==============================
 
+// 404 handler
 app.use((req, res) => {
-    res.status(404).render('404');
+    res.status(404).render('404', { message: 'صفحه مورد نظر یافت نشد' });
 });
 
+// Global error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).render('err');
+    console.error('Global error:', err.stack);
+    res.status(500).render('err', { message: 'خطای داخلی سرور' });
 });
 
 // ==============================

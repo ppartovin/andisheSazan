@@ -18,12 +18,23 @@ const FAQS_PATH = path.join(DATA_DIR, 'faqs.json');
 // ==============================
 
 const readJsonFile = async (filePath) => {
-    const content = await readFile(filePath, 'utf8');
-    return JSON.parse(content);
+    try {
+        const content = await readFile(filePath, 'utf8');
+        return JSON.parse(content);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        throw new Error(`Invalid JSON in: ${filePath}`);
+    }
 };
 
 const writeJsonFile = async (filePath, data) => {
-    await writeFile(filePath, JSON.stringify(data, null, 2));
+    try {
+        await writeFile(filePath, JSON.stringify(data, null, 2));
+    } catch (err) {
+        throw new Error(`Failed to write file: ${filePath}`);
+    }
 };
 
 const reindexItems = (items) => {
@@ -78,14 +89,19 @@ router.get('/', checkToken, async (req, res) => {
 
         res.render('adminPanel/adminFaq', { faqs });
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('FAQ list error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری لیست سوالات' });
     }
 });
 
 // Show add form
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminPanel/adminFaqAdd', { error: null });
+    try {
+        res.render('adminPanel/adminFaqAdd', { error: null });
+    } catch (err) {
+        console.error('Add form error:', err.message);
+        res.status(500).render('err');
+    }
 });
 
 // Add new FAQ
@@ -93,8 +109,23 @@ router.post('/add', checkToken, async (req, res) => {
     try {
         const { question, answer } = req.body;
 
+        // اعتبارسنجی
         if (!question || question.trim() === '') {
-            return res.render('adminPanel/adminFaqAdd', { error: 'سوال الزامی است' });
+            return res.render('adminPanel/adminFaqAdd', { 
+                error: 'سوال الزامی است' 
+            });
+        }
+
+        if (question.length > 500) {
+            return res.render('adminPanel/adminFaqAdd', { 
+                error: 'سوال نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+            });
+        }
+
+        if (answer && answer.length > 2000) {
+            return res.render('adminPanel/adminFaqAdd', { 
+                error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد' 
+            });
         }
 
         const faqs = await readJsonFile(FAQS_PATH);
@@ -104,7 +135,7 @@ router.post('/add', checkToken, async (req, res) => {
 
         faqs[nextId] = {
             question: question.trim(),
-            answer: answer || ''
+            answer: answer?.trim() || ''
         };
 
         const reindexedFaqs = reindexItems(faqs);
@@ -113,8 +144,8 @@ router.post('/add', checkToken, async (req, res) => {
         res.redirect('/admin/faq');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Add FAQ error:', err.message);
+        res.status(500).render('err', { message: 'خطا در افزودن سوال' });
     }
 });
 
@@ -122,6 +153,12 @@ router.post('/add', checkToken, async (req, res) => {
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const faqId = req.params.id;
+
+        // اعتبارسنجی ID
+        if (!faqId || isNaN(parseInt(faqId))) {
+            return res.redirect('/admin/faq');
+        }
+
         const faqs = await readJsonFile(FAQS_PATH);
         const faq = faqs[faqId];
 
@@ -129,11 +166,13 @@ router.get('/edit/:id', checkToken, async (req, res) => {
             return res.redirect('/admin/faq');
         }
 
-        res.render('adminPanel/adminFaqEdit', { faq: { id: faqId, ...faq } });
+        res.render('adminPanel/adminFaqEdit', { 
+            faq: { id: faqId, ...faq } 
+        });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Edit form error:', err.message);
+        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
     }
 });
 
@@ -143,15 +182,35 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const faqId = req.params.id;
         const { question, answer } = req.body;
 
+        // اعتبارسنجی ID
+        if (!faqId || isNaN(parseInt(faqId))) {
+            return res.redirect('/admin/faq');
+        }
+
         const faqs = await readJsonFile(FAQS_PATH);
 
         if (!faqs[faqId]) {
             return res.redirect('/admin/faq');
         }
 
+        // اعتبارسنجی سوال
+        if (question && question.length > 500) {
+            return res.render('adminPanel/adminFaqEdit', { 
+                faq: { id: faqId, ...faqs[faqId] },
+                error: 'سوال نباید بیشتر از ۵۰۰ کاراکتر باشد'
+            });
+        }
+
+        if (answer && answer.length > 2000) {
+            return res.render('adminPanel/adminFaqEdit', { 
+                faq: { id: faqId, ...faqs[faqId] },
+                error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد'
+            });
+        }
+
         faqs[faqId] = {
-            question: question || faqs[faqId].question,
-            answer: answer || faqs[faqId].answer || ''
+            question: question?.trim() || faqs[faqId].question,
+            answer: answer?.trim() || faqs[faqId].answer || ''
         };
 
         const reindexedFaqs = reindexItems(faqs);
@@ -160,8 +219,8 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         res.redirect('/admin/faq');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Update FAQ error:', err.message);
+        res.status(500).render('err', { message: 'خطا در ویرایش سوال' });
     }
 });
 
@@ -169,7 +228,17 @@ router.post('/edit/:id', checkToken, async (req, res) => {
 router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const faqId = req.params.id;
+
+        // اعتبارسنجی ID
+        if (!faqId || isNaN(parseInt(faqId))) {
+            return res.redirect('/admin/faq');
+        }
+
         const faqs = await readJsonFile(FAQS_PATH);
+
+        if (!faqs[faqId]) {
+            return res.redirect('/admin/faq');
+        }
 
         delete faqs[faqId];
 
@@ -179,8 +248,8 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         res.redirect('/admin/faq');
 
     } catch (err) {
-        console.error(err);
-        res.status(500).render('err');
+        console.error('Delete FAQ error:', err.message);
+        res.status(500).render('err', { message: 'خطا در حذف سوال' });
     }
 });
 
