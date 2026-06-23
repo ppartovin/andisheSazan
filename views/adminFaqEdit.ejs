@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ویرایش سوال</title>
+</head>
+<body>
+
+    <h1>ویرایش سوال</h1>
+    <p><a href="/admin/faq">بازگشت به لیست سوالات</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <form action="/admin/faq/edit/<%= faq.id %>" method="POST">
+        <div>
+            <label for="question">سوال</label>
+            <input type="text" id="question" name="question" value="<%= faq.question %>" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="answer">پاسخ</label>
+            <textarea id="answer" name="answer" rows="5"><%= faq.answer || '' %></textarea>
+        </div>
+
+        <br>
+
+        <button type="submit">ذخیره تغییرات</button>
+        <a href="/admin/faq">انصراف</a>
+    </form>
+
+</body>
+</html>

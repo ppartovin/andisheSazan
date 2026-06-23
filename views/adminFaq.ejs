@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت سوالات متداول</title>
+</head>
+<body>
+
+    <h1>مدیریت سوالات متداول</h1>
+    <p><a href="/admin/panel">بازگشت به پنل</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <a href="/admin/faq/add">➕ افزودن سوال جدید</a>
+
+    <br><br>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>سوال</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (faqs && faqs.length > 0) { %>
+                <% faqs.forEach((faq, index) => { %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= faq.question %></td>
+                        <td>
+                            <a href="/admin/faq/edit/<%= faq.id %>">ویرایش</a>
+                            |
+                            <a href="/admin/faq/delete/<%= faq.id %>">حذف</a>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="3">هیچ سوالی وجود ندارد</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+</body>
+</html>

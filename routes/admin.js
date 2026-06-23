@@ -13,6 +13,9 @@ router.use('/products', productRoutes);
 const blogRoutes = require('./adminBlogs');
 router.use('/blogs', blogRoutes);
 
+const faqRoutes = require('./adminFaq');
+router.use('/faq', faqRoutes);
+
 // ==============================
 // TOKEN FUNCTIONS
 // ==============================

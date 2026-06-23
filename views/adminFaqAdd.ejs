@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>افزودن سوال جدید</title>
+</head>
+<body>
+
+    <h1>افزودن سوال جدید</h1>
+    <p><a href="/admin/faq">بازگشت به لیست سوالات</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <form action="/admin/faq/add" method="POST">
+        <div>
+            <label for="question">سوال</label>
+            <input type="text" id="question" name="question" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="answer">پاسخ</label>
+            <textarea id="answer" name="answer" rows="5"></textarea>
+        </div>
+
+        <br>
+
+        <button type="submit">ذخیره</button>
+        <a href="/admin/faq">انصراف</a>
+    </form>
+
+</body>
+</html>
