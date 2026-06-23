@@ -1,12 +1,64 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const fs = require('fs');
-const path = require('path');
 const jwt = require('jsonwebtoken');
+const { readFile, writeFile } = require('fs').promises;
+const path = require('path');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
 
+// ==============================
+// CONSTANTS
+// ==============================
+
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const ADMINS_PATH = path.join(DATA_DIR, 'adminAccounts.json');
+
+// ==============================
+// TOKEN FUNCTIONS
+// ==============================
+
+const generateToken = (username) => {
+    return jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
+};
+
+const verifyToken = (token) => {
+    try {
+        return jwt.verify(token, SECRET_KEY);
+    } catch {
+        return null;
+    }
+};
+
+// ==============================
+// MIDDLEWARE: Check Token
+// ==============================
+
+const checkToken = (req, res, next) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    req.user = verifyToken(token);
+    next();
+};
+
+// ==============================
+// READ HELPERS
+// ==============================
+
+const readJsonFile = async (filePath) => {
+    const content = await readFile(filePath, 'utf8');
+    return JSON.parse(content);
+};
+
+// ==============================
+// ROUTES
+// ==============================
+
+// Mount sub-routes
 const productRoutes = require('./adminProducts');
 router.use('/products', productRoutes);
 
@@ -16,45 +68,12 @@ router.use('/blogs', blogRoutes);
 const faqRoutes = require('./adminFaq');
 router.use('/faq', faqRoutes);
 
-// ==============================
-// TOKEN FUNCTIONS
-// ==============================
-
-function generateToken(username) {
-    return jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-}
-
-function verifyToken(token) {
-    try {
-        return jwt.verify(token, SECRET_KEY);
-    } catch (err) {
-        return null;
-    }
-}
-
-// ==============================
-// MIDDLEWARE: Check Token
-// ==============================
-
-function checkToken(req, res, next) {
-    const token = req.cookies?.adminToken;
-
-    if (!token || !verifyToken(token)) {
-        return res.redirect('/admin/login');
-    }
-
-    req.user = verifyToken(token);
-    next();
-}
-
-// ==============================
-// ROUTES
-// ==============================
-
+// Redirect root to login
 router.get('/', (req, res) => {
     res.redirect('/admin/login');
 });
 
+// Login page
 router.get('/login', (req, res) => {
     const token = req.cookies?.adminToken;
 
@@ -65,41 +84,46 @@ router.get('/login', (req, res) => {
     res.render('adminPanel/adminLogin', { error: null });
 });
 
+// Login handler
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
+        const admins = await readJsonFile(ADMINS_PATH);
+        const admin = admins.find(u => u.username === username);
 
-    const usersPath = path.join(__dirname, '..', 'data', 'adminAccounts.json');
-    const usersData = fs.readFileSync(usersPath, 'utf8');
-    const users = JSON.parse(usersData);
+        if (!admin) {
+            return res.render('adminPanel/adminLogin', { error: 'کاربر یافت نشد' });
+        }
 
-    const user = users.find(u => u.username === username);
+        const isMatch = await bcrypt.compare(password, admin.password);
 
-    if (!user) {
-        return res.render('adminPanel/adminLogin', { error: 'کاربر یافت نشد' });
-    }
+        if (!isMatch) {
+            return res.render('adminPanel/adminLogin', { error: 'رمز عبور اشتباه است' });
+        }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (isMatch) {
         const token = generateToken(username);
 
         res.cookie('adminToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 1 * 60 * 60 * 1000
+            maxAge: 60 * 60 * 1000 // 1 hour
         });
 
-        return res.redirect('/admin/panel');
-    }
+        res.redirect('/admin/panel');
 
-    res.render('adminPanel/adminLogin', { error: 'رمز عبور اشتباه است' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('err');
+    }
 });
 
+// Admin panel (protected)
 router.get('/panel', checkToken, (req, res) => {
     res.render('adminPanel/adminPanel', { username: req.user.username });
 });
 
+// Logout
 router.get('/logout', (req, res) => {
     res.clearCookie('adminToken');
     res.redirect('/admin/login');
