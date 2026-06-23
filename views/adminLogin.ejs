@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به کنترل پنل</title>
+</head>
+<body>
+
+    <h1>ورود به کنترل پنل</h1>
+
+    <% if (error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <form action="/admin/login" method="POST">
+        <div>
+            <label for="username">نام کاربری</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+
+        <div>
+            <label for="password">رمز عبور</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit">ورود</button>
+    </form>
+
+</body>
+</html>

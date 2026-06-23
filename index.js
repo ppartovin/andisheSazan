@@ -6,8 +6,15 @@ const express = require('express');
 const helmet = require('helmet');
 const fs = require('fs');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
+
+app.use(cookieParser());
+
+app.use(express.json()); // برای JSON
+app.use(express.urlencoded({ extended: true })); // برای فرم‌ها
+
 
 // ==============================
 // MIDDLEWARE & CONFIGURATION
@@ -21,6 +28,10 @@ app.set('view engine', 'ejs');
 
 // Serve static files from the 'public' directory
 app.use('/public', express.static('public'));
+
+//add admin route for admin panel
+const adminRoutes = require('./routes/admin');
+app.use('/admin', adminRoutes);
 
 // ==============================
 // HELPER FUNCTIONS
@@ -54,7 +65,7 @@ const renderPage = (res, pageName, lang, data = {}) => {
 // ==============================
 
 // Redirect root to index
-app.get('/', (req, res) => res.reedirect('/index'));
+app.get('/', (req, res) => res.redirect('/index'));
 
 // Index page
 app.get('/index', (req, res) => res.redirect('/index/fa'));
