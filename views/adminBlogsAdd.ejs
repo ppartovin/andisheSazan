@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>افزودن بلاگ جدید</title>
+</head>
+<body>
+
+    <h1>افزودن بلاگ جدید</h1>
+    <p><a href="/admin/blogs">بازگشت به لیست بلاگ‌ها</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <form action="/admin/blogs/add" method="POST">
+        <div>
+            <label for="title">عنوان</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="subtitle">زیرعنوان</label>
+            <input type="text" id="subtitle" name="subtitle">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="writer">نویسنده</label>
+            <input type="text" id="writer" name="writer">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="date">تاریخ</label>
+            <input type="text" id="date" name="date" placeholder="مثال: 1404/01/15">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="image">آدرس تصویر</label>
+            <input type="text" id="image" name="image">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="text">متن بلاگ</label>
+            <textarea id="text" name="text" rows="10"></textarea>
+        </div>
+
+        <br>
+
+        <button type="submit">ذخیره</button>
+        <a href="/admin/blogs">انصراف</a>
+    </form>
+
+</body>
+</html>

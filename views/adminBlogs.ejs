@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت بلاگ‌ها</title>
+</head>
+<body>
+
+    <h1>مدیریت بلاگ‌ها</h1>
+    <p><a href="/admin/panel">بازگشت به پنل</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <a href="/admin/blogs/add">➕ افزودن بلاگ جدید</a>
+
+    <br><br>
+
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>عنوان</th>
+                <th>نویسنده</th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (blogs && blogs.length > 0) { %>
+                <% blogs.forEach((blog, index) => { %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><%= blog.title %></td>
+                        <td><%= blog.writer || '-' %></td>
+                        <td>
+                            <a href="/admin/blogs/edit/<%= blog.id %>">ویرایش</a>
+                            |
+                            <a href="/admin/blogs/delete/<%= blog.id %>">حذف</a>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } else { %>
+                <tr>
+                    <td colspan="4">هیچ بلاگی وجود ندارد</td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+</body>
+</html>
