@@ -77,22 +77,192 @@ router.post('/login', async (req, res) => {
         });
 
 		console.log('here2')
-        return res.redirect('/');
+        return res.redirect('/admin/panel');
     }
 
     res.render('adminLogin', { error: 'رمز عبور اشتباه است' });
 });
 
-router.get('/panel',(req,res)=>{
-	const token = req.cookies?.adminToken;
+router.get('/panel', (req, res) => {
+    const token = req.cookies?.adminToken;
 
     if (!token || !verifyToken(token)) {
         return res.redirect('/admin/login');
     }
 
-	//if(false/* login==false */){res.redirect('/admin/login')}
+    const decoded = verifyToken(token);
+    res.render('adminPanel', { username: decoded.username });
+});
 
-	res.render('adminPanel')
-})
+
+router.get('/logout', (req, res) => {
+    res.clearCookie('adminToken');
+    res.redirect('/admin/login');
+});
+
+
+router.get('/products', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    const productsPath = path.join(__dirname, '..', 'data', 'products.json');
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const productsObj = JSON.parse(productsData);
+
+    const products = Object.entries(productsObj).map(([id, item]) => ({
+        id,
+        ...item
+    }));
+
+    res.render('adminProducts', { products });
+});
+
+router.get('/products/delete/:id', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    const productId = req.params.id;
+    const productsPath = path.join(__dirname, '..', 'data', 'products.json');
+
+    // خواندن فایل
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const products = JSON.parse(productsData);
+
+    // حذف محصول
+    delete products[productId];
+
+    // ذخیره فایل
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+    // برگشت به لیست محصولات
+    res.redirect('/admin/products');
+});
+
+
+// ==============================
+// EDIT PRODUCT - SHOW FORM
+// ==============================
+
+router.get('/products/edit/:id', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    const productId = req.params.id;
+    const productsPath = path.join(__dirname, '..', 'data', 'products.json');
+
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const products = JSON.parse(productsData);
+
+    const product = products[productId];
+
+    if (!product) {
+        return res.redirect('/admin/products');
+    }
+
+    res.render('adminProductEdit', { product: { id: productId, ...product } });
+});
+
+// ==============================
+// EDIT PRODUCT - UPDATE
+// ==============================
+
+router.post('/products/edit/:id', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    const productId = req.params.id;
+    const { title, subtitle, price, description, image } = req.body;
+
+    const productsPath = path.join(__dirname, '..', 'data', 'products.json');
+
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const products = JSON.parse(productsData);
+
+    if (!products[productId]) {
+        return res.redirect('/admin/products');
+    }
+
+    // بروزرسانی
+    products[productId] = {
+        ...products[productId],
+        title: title || products[productId].title,
+        subtitle: subtitle || products[productId].subtitle || '',
+        price: price || products[productId].price || '',
+        description: description || products[productId].description || '',
+        image: image || products[productId].image || ''
+    };
+
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+    res.redirect('/admin/products');
+});
+
+
+// ==============================
+// ADD PRODUCT - SHOW FORM
+// ==============================
+
+router.get('/products/add', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    res.render('adminProductsAdd', { error: null });
+});
+
+
+// ==============================
+// ADD PRODUCT - SAVE
+// ==============================
+
+router.post('/products/add', (req, res) => {
+    const token = req.cookies?.adminToken;
+
+    if (!token || !verifyToken(token)) {
+        return res.redirect('/admin/login');
+    }
+
+    const { title, subtitle, price, description, image } = req.body;
+
+    if (!title || title.trim() === '') {
+        return res.render('adminProductsAdd', { error: 'عنوان محصول الزامی است' });
+    }
+
+    const productsPath = path.join(__dirname, '..', 'data', 'products.json');
+
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const products = JSON.parse(productsData);
+
+    // پیدا کردن آخرین ID
+    const ids = Object.keys(products).map(Number);
+    const nextId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
+
+    // اضافه کردن محصول جدید
+    products[nextId] = {
+        title: title.trim(),
+        subtitle: subtitle || '',
+        price: price || '',
+        description: description || '',
+        image: image || ''
+    };
+
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+    res.redirect('/admin/products');
+});
 
 module.exports = router;

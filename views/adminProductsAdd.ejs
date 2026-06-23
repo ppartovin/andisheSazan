@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>افزودن محصول جدید</title>
+</head>
+<body>
+
+    <h1>افزودن محصول جدید</h1>
+    <p><a href="/admin/products">بازگشت به لیست محصولات</a> | <a href="/admin/logout">خروج</a></p>
+
+	<% if (error) { %>
+    	<p style="color: red;"><%= error %></p>
+	<% } %>
+    <hr>
+
+    <form action="/admin/products/add" method="POST">
+        <div>
+            <label for="title">عنوان</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="subtitle">زیرعنوان</label>
+            <input type="text" id="subtitle" name="subtitle">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="price">قیمت</label>
+            <input type="text" id="price" name="price">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="description">توضیحات</label>
+            <textarea id="description" name="description" rows="5"></textarea>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="image">آدرس تصویر</label>
+            <input type="text" id="image" name="image">
+        </div>
+
+        <br>
+
+        <button type="submit">ذخیره</button>
+        <a href="/admin/products">انصراف</a>
+    </form>
+
+</body>
+</html>

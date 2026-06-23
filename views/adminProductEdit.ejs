@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ویرایش محصول</title>
+</head>
+<body>
+
+    <h1>ویرایش محصول</h1>
+    <p><a href="/admin/products">بازگشت به لیست محصولات</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <form action="/admin/products/edit/<%= product.id %>" method="POST">
+        <div>
+            <label for="title">عنوان</label>
+            <input type="text" id="title" name="title" value="<%= product.title %>" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="subtitle">زیرعنوان</label>
+            <input type="text" id="subtitle" name="subtitle" value="<%= product.subtitle || '' %>">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="price">قیمت</label>
+            <input type="text" id="price" name="price" value="<%= product.price || '' %>">
+        </div>
+
+        <br>
+
+        <div>
+            <label for="description">توضیحات</label>
+            <textarea id="description" name="description" rows="5"><%= product.description || '' %></textarea>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="image">آدرس تصویر</label>
+            <input type="text" id="image" name="image" value="<%= product.image || '' %>">
+        </div>
+
+        <br>
+
+        <button type="submit">ذخیره تغییرات</button>
+        <a href="/admin/products">انصراف</a>
+    </form>
+
+</body>
+</html>
