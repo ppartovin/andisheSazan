@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
 
 // ==============================
-// TOKEN FUNCTIONS (دوباره تعریف یا import)
+// TOKEN FUNCTIONS
 // ==============================
 
 function verifyToken(token) {
@@ -31,6 +31,20 @@ function checkToken(req, res, next) {
 
     req.user = verifyToken(token);
     next();
+}
+
+// ==============================
+// HELPER: Reindex Products
+// ==============================
+
+function reindexProducts(products) {
+    const newProducts = {};
+    let counter = 1;
+    Object.values(products).forEach(item => {
+        newProducts[counter] = item;
+        counter++;
+    });
+    return newProducts;
 }
 
 // ==============================
@@ -79,7 +93,8 @@ router.post('/add', checkToken, (req, res) => {
         image: image || ''
     };
 
-    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+    const reindexedProducts = reindexProducts(products);
+    fs.writeFileSync(productsPath, JSON.stringify(reindexedProducts, null, 2));
     res.redirect('/admin/products');
 });
 
@@ -121,7 +136,8 @@ router.post('/edit/:id', checkToken, (req, res) => {
         image: image || products[productId].image || ''
     };
 
-    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+    const reindexedProducts = reindexProducts(products);
+    fs.writeFileSync(productsPath, JSON.stringify(reindexedProducts, null, 2));
     res.redirect('/admin/products');
 });
 
@@ -135,7 +151,8 @@ router.get('/delete/:id', checkToken, (req, res) => {
 
     delete products[productId];
 
-    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+    const reindexedProducts = reindexProducts(products);
+    fs.writeFileSync(productsPath, JSON.stringify(reindexedProducts, null, 2));
     res.redirect('/admin/products');
 });
 

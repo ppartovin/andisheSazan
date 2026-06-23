@@ -34,6 +34,20 @@ function checkToken(req, res, next) {
 }
 
 // ==============================
+// HELPER: Reindex IDs
+// ==============================
+
+function reindexBlogs(blogs) {
+    const newBlogs = {};
+    let counter = 1;
+    Object.values(blogs).forEach(item => {
+        newBlogs[counter] = item;
+        counter++;
+    });
+    return newBlogs;
+}
+
+// ==============================
 // BLOG ROUTES
 // ==============================
 
@@ -80,7 +94,9 @@ router.post('/add', checkToken, (req, res) => {
         text: text || ''
     };
 
-    fs.writeFileSync(blogsPath, JSON.stringify(blogs, null, 2));
+    // بازآرایی IDها بعد از افزودن
+    const reindexedBlogs = reindexBlogs(blogs);
+    fs.writeFileSync(blogsPath, JSON.stringify(reindexedBlogs, null, 2));
     res.redirect('/admin/blogs');
 });
 
@@ -123,7 +139,9 @@ router.post('/edit/:id', checkToken, (req, res) => {
         text: text || blogs[blogId].text || ''
     };
 
-    fs.writeFileSync(blogsPath, JSON.stringify(blogs, null, 2));
+    // بازآرایی IDها بعد از ویرایش
+    const reindexedBlogs = reindexBlogs(blogs);
+    fs.writeFileSync(blogsPath, JSON.stringify(reindexedBlogs, null, 2));
     res.redirect('/admin/blogs');
 });
 
@@ -137,7 +155,9 @@ router.get('/delete/:id', checkToken, (req, res) => {
 
     delete blogs[blogId];
 
-    fs.writeFileSync(blogsPath, JSON.stringify(blogs, null, 2));
+    // بازآرایی IDها بعد از حذف
+    const reindexedBlogs = reindexBlogs(blogs);
+    fs.writeFileSync(blogsPath, JSON.stringify(reindexedBlogs, null, 2));
     res.redirect('/admin/blogs');
 });
 
