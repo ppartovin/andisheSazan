@@ -62,7 +62,7 @@ router.get('/login', (req, res) => {
         return res.redirect('/admin/panel');
     }
 
-    res.render('adminLogin', { error: null });
+    res.render('adminPanel/adminLogin', { error: null });
 });
 
 router.post('/login', async (req, res) => {
@@ -75,7 +75,7 @@ router.post('/login', async (req, res) => {
     const user = users.find(u => u.username === username);
 
     if (!user) {
-        return res.render('adminLogin', { error: 'کاربر یافت نشد' });
+        return res.render('adminPanel/adminLogin', { error: 'کاربر یافت نشد' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -93,11 +93,11 @@ router.post('/login', async (req, res) => {
         return res.redirect('/admin/panel');
     }
 
-    res.render('adminLogin', { error: 'رمز عبور اشتباه است' });
+    res.render('adminPanel/adminLogin', { error: 'رمز عبور اشتباه است' });
 });
 
 router.get('/panel', checkToken, (req, res) => {
-    res.render('adminPanel', { username: req.user.username });
+    res.render('adminPanel/adminPanel', { username: req.user.username });
 });
 
 router.get('/logout', (req, res) => {

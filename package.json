@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "structure": "node scripts/showStructure.js",
     "createAdmin": "node scripts/createAdmin.js"
   },
   "keywords": [],

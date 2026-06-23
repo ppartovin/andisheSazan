@@ -62,12 +62,12 @@ router.get('/', checkToken, (req, res) => {
         ...item
     }));
 
-    res.render('adminProducts', { products });
+    res.render('adminPanel/adminProducts', { products });
 });
 
 // فرم افزودن محصول
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminProductsAdd', { error: null });
+    res.render('adminPanel/adminProductsAdd', { error: null });
 });
 
 // ذخیره محصول جدید
@@ -75,7 +75,7 @@ router.post('/add', checkToken, (req, res) => {
     const { title, subtitle, price, description, image } = req.body;
 
     if (!title || title.trim() === '') {
-        return res.render('adminProductsAdd', { error: 'عنوان محصول الزامی است' });
+        return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
     }
 
     const productsPath = path.join(__dirname, '..', 'data', 'products.json');
@@ -111,7 +111,7 @@ router.get('/edit/:id', checkToken, (req, res) => {
         return res.redirect('/admin/products');
     }
 
-    res.render('adminProductsEdit', { product: { id: productId, ...product } });
+    res.render('adminPanel/adminProductsEdit', { product: { id: productId, ...product } });
 });
 
 // ذخیره ویرایش محصول

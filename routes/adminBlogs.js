@@ -62,12 +62,12 @@ router.get('/', checkToken, (req, res) => {
         ...item
     }));
 
-    res.render('adminBlogs', { blogs });
+    res.render('adminPanel/adminBlogs', { blogs });
 });
 
 // فرم افزودن بلاگ
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminBlogsAdd', { error: null });
+    res.render('adminPanel/adminBlogsAdd', { error: null });
 });
 
 // ذخیره بلاگ جدید
@@ -75,7 +75,7 @@ router.post('/add', checkToken, (req, res) => {
     const { title, subtitle, writer, date, image, text } = req.body;
 
     if (!title || title.trim() === '') {
-        return res.render('adminBlogsAdd', { error: 'عنوان بلاگ الزامی است' });
+        return res.render('adminPanel/adminBlogsAdd', { error: 'عنوان بلاگ الزامی است' });
     }
 
     const blogsPath = path.join(__dirname, '..', 'data', 'blogs.json');
@@ -113,7 +113,7 @@ router.get('/edit/:id', checkToken, (req, res) => {
         return res.redirect('/admin/blogs');
     }
 
-    res.render('adminBlogsEdit', { blog: { id: blogId, ...blog } });
+    res.render('adminPanel/adminBlogsEdit', { blog: { id: blogId, ...blog } });
 });
 
 // ذخیره ویرایش بلاگ

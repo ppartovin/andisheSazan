@@ -38,12 +38,12 @@ router.get('/', checkToken, (req, res) => {
         ...item
     }));
 
-    res.render('adminFaq', { faqs });
+    res.render('adminPanel/adminFaq', { faqs });
 });
 
 // فرم افزودن سوال
 router.get('/add', checkToken, (req, res) => {
-    res.render('adminFaqAdd', { error: null });
+    res.render('adminPanel/adminFaqAdd', { error: null });
 });
 
 // ذخیره سوال جدید
@@ -51,7 +51,7 @@ router.post('/add', checkToken, (req, res) => {
     const { question, answer } = req.body;
 
     if (!question || question.trim() === '') {
-        return res.render('adminFaqAdd', { error: 'سوال الزامی است' });
+        return res.render('adminPanel/adminFaqAdd', { error: 'سوال الزامی است' });
     }
 
     const faqsPath = path.join(__dirname, '..', 'data', 'faqs.json');
@@ -83,7 +83,7 @@ router.get('/edit/:id', checkToken, (req, res) => {
         return res.redirect('/admin/faq');
     }
 
-    res.render('adminFaqEdit', { faq: { id: faqId, ...faq } });
+    res.render('adminPanel/adminFaqEdit', { faq: { id: faqId, ...faq } });
 });
 
 // ذخیره ویرایش سوال
