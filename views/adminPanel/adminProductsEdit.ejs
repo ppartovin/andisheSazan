@@ -14,35 +14,35 @@
     <form action="/admin/products/edit/<%= product.id %>" method="POST">
         <div>
             <label for="title">عنوان</label>
-            <input type="text" id="title" name="title" value="<%= product.title %>" required>
+            <input type="text" id="title" name="title" value="<%= product.title %>" maxlength="200" placeholder="عنوان محصول را وارد کنید..." required>
         </div>
 
         <br>
 
         <div>
             <label for="subtitle">زیرعنوان</label>
-            <input type="text" id="subtitle" name="subtitle" value="<%= product.subtitle || '' %>">
+            <input type="text" id="subtitle" name="subtitle" value="<%= product.subtitle || '' %>" maxlength="500" placeholder="زیرعنوان محصول را وارد کنید...">
         </div>
 
         <br>
 
         <div>
             <label for="price">قیمت</label>
-            <input type="text" id="price" name="price" value="<%= product.price || '' %>">
+            <input type="text" id="price" name="price" value="<%= product.price || '' %>" maxlength="50" placeholder="مثال: ۱,۰۰۰,۰۰۰ تومان">
         </div>
 
         <br>
 
         <div>
             <label for="description">توضیحات</label>
-            <textarea id="description" name="description" rows="5"><%= product.description || '' %></textarea>
+            <textarea id="description" name="description" rows="5" maxlength="5000" placeholder="توضیحات محصول را وارد کنید..."><%= product.description || '' %></textarea>
         </div>
 
         <br>
 
         <div>
             <label for="image">آدرس تصویر</label>
-            <input type="text" id="image" name="image" value="<%= product.image || '' %>">
+            <input type="url" id="image" name="image" value="<%= product.image || '' %>" maxlength="500" placeholder="https://example.com/image.jpg">
         </div>
 
         <br>

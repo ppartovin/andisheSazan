@@ -18,42 +18,42 @@
     <form action="/admin/blogs/add" method="POST">
         <div>
             <label for="title">عنوان</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" maxlength="200" required>
         </div>
 
         <br>
 
         <div>
             <label for="subtitle">زیرعنوان</label>
-            <input type="text" id="subtitle" name="subtitle">
+            <input type="text" id="subtitle" name="subtitle" maxlength="500">
         </div>
 
         <br>
 
         <div>
             <label for="writer">نویسنده</label>
-            <input type="text" id="writer" name="writer">
+            <input type="text" id="writer" name="writer" maxlength="100">
         </div>
 
         <br>
 
         <div>
             <label for="date">تاریخ</label>
-            <input type="text" id="date" name="date" placeholder="مثال: 1404/01/15">
+            <input type="text" id="date" name="date" placeholder="مثال: 1404/01/15" maxlength="20">
         </div>
 
         <br>
 
         <div>
             <label for="image">آدرس تصویر</label>
-            <input type="text" id="image" name="image">
+            <input type="url" id="image" name="image" placeholder="https://example.com/image.jpg" maxlength="500">
         </div>
 
         <br>
 
         <div>
             <label for="text">متن بلاگ</label>
-            <textarea id="text" name="text" rows="10"></textarea>
+            <textarea id="text" name="text" rows="10" maxlength="50000"></textarea>
         </div>
 
         <br>

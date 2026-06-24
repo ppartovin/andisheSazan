@@ -9,43 +9,44 @@
     <h1>افزودن محصول جدید</h1>
     <p><a href="/admin/products">بازگشت به لیست محصولات</a> | <a href="/admin/logout">خروج</a></p>
 
-	<% if (error) { %>
-    	<p style="color: red;"><%= error %></p>
-	<% } %>
+    <% if (error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
     <hr>
 
     <form action="/admin/products/add" method="POST">
         <div>
             <label for="title">عنوان</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" maxlength="200" placeholder="عنوان محصول را وارد کنید..." required>
         </div>
 
         <br>
 
         <div>
             <label for="subtitle">زیرعنوان</label>
-            <input type="text" id="subtitle" name="subtitle">
+            <input type="text" id="subtitle" name="subtitle" maxlength="500" placeholder="زیرعنوان محصول را وارد کنید...">
         </div>
 
         <br>
 
         <div>
             <label for="price">قیمت</label>
-            <input type="text" id="price" name="price">
+            <input type="text" id="price" name="price" maxlength="50" placeholder="مثال: ۱,۰۰۰,۰۰۰ تومان">
         </div>
 
         <br>
 
         <div>
             <label for="description">توضیحات</label>
-            <textarea id="description" name="description" rows="5"></textarea>
+            <textarea id="description" name="description" rows="5" maxlength="5000" placeholder="توضیحات محصول را وارد کنید..."></textarea>
         </div>
 
         <br>
 
         <div>
             <label for="image">آدرس تصویر</label>
-            <input type="text" id="image" name="image">
+            <input type="url" id="image" name="image" maxlength="500" placeholder="https://example.com/image.jpg">
         </div>
 
         <br>

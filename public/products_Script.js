@@ -3,6 +3,19 @@
  * Handles infinite scroll loading of products using Intersection Observer
  */
 
+function isValidUrl(url) {
+    if (!url) return false;
+    const trimmed = url.trim();
+    if (trimmed.startsWith('/')) return true;
+    if (trimmed.startsWith('mailto:') || trimmed.startsWith('tel:')) return true;
+    try {
+        const parsed = new URL(trimmed);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function() {
 
     // ==============================
@@ -38,17 +51,33 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (data.products && data.products.length > 0) {
                 data.products.forEach(product => {
-                    const productHTML = `
-                        <article class="product-item">
-                            <h3>${product.title}</h3>
-                            <p>${product.subtitle}</p>
-                            <span>${product.price}</span>
-                            <br>
-                            <a href="${product.link}">مشاهده</a>
-                            <hr>
-                        </article>
-                    `;
-                    container.insertAdjacentHTML('beforeend', productHTML);
+                    const article = document.createElement('article');
+                    article.className = 'product-item';
+
+                    const title = document.createElement('h3');
+                    title.textContent = product.title || 'بدون عنوان';
+                    article.appendChild(title);
+
+                    const subtitle = document.createElement('p');
+                    subtitle.textContent = product.subtitle || '';
+                    article.appendChild(subtitle);
+
+                    const price = document.createElement('span');
+                    price.textContent = product.price || '';
+                    article.appendChild(price);
+
+                    const br = document.createElement('br');
+                    article.appendChild(br);
+
+                    const link = document.createElement('a');
+                    link.href = isValidUrl(product.link) ? product.link : '#';
+                    link.textContent = 'مشاهده';
+                    article.appendChild(link);
+
+                    const hr = document.createElement('hr');
+                    article.appendChild(hr);
+
+                    container.appendChild(article);
                 });
                 currentPage++;
                 hasMore = data.hasMore;
@@ -60,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } finally {
             isLoading = false;
             if (!hasMore) {
-                anchor.innerHTML = '<p>تمام محصولات نمایش داده شدند.</p>';
+                anchor.textContent  = '<p>تمام محصولات نمایش داده شدند.</p>';
             }
         }
     }

@@ -3,9 +3,13 @@ const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const escapeHtml = require('escape-html');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
-
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    console.error('❌ JWT_SECRET is not defined in environment variables');
+    process.exit(1);
+}
 // ==============================
 // CONSTANTS
 // ==============================
@@ -20,10 +24,17 @@ const FAQS_PATH = path.join(DATA_DIR, 'faqs.json');
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
-        return JSON.parse(content);
+        if (!content || content.trim() === '') {
+            return {}; // فایل خالی → آبجکت خالی
+        }
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            throw new Error(`File not found: ${filePath}`);
+            return {}; // فایل وجود ندارد → آبجکت خالی
         }
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
@@ -64,14 +75,31 @@ const verifyToken = (token) => {
 // ==============================
 
 const checkToken = (req, res, next) => {
-    const token = req.cookies?.adminToken;
+    try {
+        const token = req.cookies?.adminToken;
+        if (!token) {
+            return res.redirect('/admin/login');
+        }
 
-    if (!token || !verifyToken(token)) {
-        return res.redirect('/admin/login');
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.redirect('/admin/login');
+        }
+
+        req.user = decoded;
+        next();
+    } catch (err) {
+        console.error('CheckToken error:', err.message);
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
     }
+};
 
-    req.user = verifyToken(token);
-    next();
+// در بالای فایل، بعد از imports
+const isValidText = (text) => {
+    // فقط حروف فارسی، انگلیسی، اعداد، فاصله، و علائم نگارشی معمول
+    const regex = /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FFa-zA-Z0-9\s\.\،\؟\!\;\:\-\_\(\)\"]+$/;
+    return regex.test(text);
 };
 
 // ==============================
@@ -107,7 +135,8 @@ router.get('/add', checkToken, (req, res) => {
 // Add new FAQ
 router.post('/add', checkToken, async (req, res) => {
     try {
-        const { question, answer } = req.body;
+        const question = escapeHtml(req.body.question.trim());
+        const answer = escapeHtml(req.body.answer?.trim() || '');
 
         // اعتبارسنجی
         if (!question || question.trim() === '') {
@@ -125,6 +154,19 @@ router.post('/add', checkToken, async (req, res) => {
         if (answer && answer.length > 2000) {
             return res.render('adminPanel/adminFaqAdd', { 
                 error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد' 
+            });
+        }
+
+        // اعتبارسنجی کاراکترهای سوال
+        if (!isValidText(question)) {
+            return res.render('adminPanel/adminFaqAdd', { 
+                error: 'سوال شامل کاراکترهای غیرمجاز است' 
+            });
+        }
+
+        if (!isValidText(answer)) {
+            return res.render('adminPanel/adminFaqAdd', { 
+                error: 'پاسخ شامل کاراکترهای غیرمجاز است' 
             });
         }
 
@@ -155,7 +197,7 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const faqId = req.params.id;
 
         // اعتبارسنجی ID
-        if (!faqId || isNaN(parseInt(faqId))) {
+        if (!faqId || isNaN(parseInt(faqId))|| !/^\d+$/.test(faqId)) {
             return res.redirect('/admin/faq');
         }
 
@@ -180,10 +222,11 @@ router.get('/edit/:id', checkToken, async (req, res) => {
 router.post('/edit/:id', checkToken, async (req, res) => {
     try {
         const faqId = req.params.id;
-        const { question, answer } = req.body;
+        const question = escapeHtml(req.body.question.trim());
+        const answer = escapeHtml(req.body.answer?.trim() || '');
 
         // اعتبارسنجی ID
-        if (!faqId || isNaN(parseInt(faqId))) {
+        if (!faqId || isNaN(parseInt(faqId))|| !/^\d+$/.test(faqId)) {
             return res.redirect('/admin/faq');
         }
 
@@ -205,6 +248,21 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             return res.render('adminPanel/adminFaqEdit', { 
                 faq: { id: faqId, ...faqs[faqId] },
                 error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد'
+            });
+        }
+
+        // اعتبارسنجی کاراکترهای سوال
+        if (!isValidText(question)) {
+            return res.render('adminPanel/adminFaqAdd', { 
+                faq: { id: faqId, ...faqs[faqId] },
+                error: 'سوال شامل کاراکترهای غیرمجاز است' 
+            });
+        }
+
+        if (!isValidText(answer)) {
+            return res.render('adminPanel/adminFaqAdd', {
+                faq: { id: faqId, ...faqs[faqId] },
+                error: 'پاسخ شامل کاراکترهای غیرمجاز است' 
             });
         }
 
@@ -230,7 +288,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const faqId = req.params.id;
 
         // اعتبارسنجی ID
-        if (!faqId || isNaN(parseInt(faqId))) {
+        if (!faqId || isNaN(parseInt(faqId)) || !/^\d+$/.test(faqId)) {
             return res.redirect('/admin/faq');
         }
 

@@ -18,14 +18,14 @@
     <form action="/admin/faq/add" method="POST">
         <div>
             <label for="question">سوال</label>
-            <input type="text" id="question" name="question" required>
+            <input type="text" id="question" name="question" maxlength="500" placeholder="سوال خود را وارد کنید..." required>
         </div>
 
         <br>
 
         <div>
             <label for="answer">پاسخ</label>
-            <textarea id="answer" name="answer" rows="5"></textarea>
+            <textarea id="answer" name="answer" rows="5" maxlength="2000" placeholder="پاسخ سوال را وارد کنید..."></textarea>
         </div>
 
         <br>

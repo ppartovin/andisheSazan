@@ -3,9 +3,13 @@ const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const escapeHtml = require('escape-html');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
-
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    console.error('❌ JWT_SECRET is not defined in environment variables');
+    process.exit(1);
+}
 // ==============================
 // CONSTANTS
 // ==============================
@@ -21,10 +25,17 @@ const INDEX_DATA_PATH = path.join(DATA_DIR, 'index_data.json');
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
-        return JSON.parse(content);
+        if (!content || content.trim() === '') {
+            return {}; // فایل خالی → آبجکت خالی
+        }
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            throw new Error(`File not found: ${filePath}`);
+            return {}; // فایل وجود ندارد → آبجکت خالی
         }
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
@@ -54,6 +65,8 @@ const generateUniqueCode = () => {
     return `PRD-${timestamp}-${random}`;
 };
 
+
+
 // ==============================
 // TOKEN FUNCTIONS
 // ==============================
@@ -71,14 +84,31 @@ const verifyToken = (token) => {
 // ==============================
 
 const checkToken = (req, res, next) => {
-    const token = req.cookies?.adminToken;
+    try {
+        const token = req.cookies?.adminToken;
+        if (!token) {
+            return res.redirect('/admin/login');
+        }
 
-    if (!token || !verifyToken(token)) {
-        return res.redirect('/admin/login');
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.redirect('/admin/login');
+        }
+
+        req.user = decoded;
+        next();
+    } catch (err) {
+        console.error('CheckToken error:', err.message);
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
     }
+};
 
-    req.user = verifyToken(token);
-    next();
+
+const isValidPrice = (price) => {
+    if (!price) return true; // قیمت اختیاری است
+    const num = parseFloat(price.replace(/,/g, ''));
+    return !isNaN(num) && num >= 0;
 };
 
 // ==============================
@@ -119,7 +149,11 @@ router.get('/add', checkToken, async (req, res) => {
 // Add new product
 router.post('/add', checkToken, async (req, res) => {
     try {
-        const { title, subtitle, price, description, image } = req.body;
+        const title = escapeHtml(req.body.title.trim());
+        const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
+        const price = escapeHtml(req.body.price?.trim() || '');
+        const description = escapeHtml(req.body.description?.trim() || '');
+        const image = escapeHtml(req.body.image?.trim() || '');
 
         if (!title || title.trim() === '') {
             return res.render('adminPanel/adminProductsAdd', { 
@@ -130,6 +164,12 @@ router.post('/add', checkToken, async (req, res) => {
         if (title.length > 200) {
             return res.render('adminPanel/adminProductsAdd', { 
                 error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' 
+            });
+        }
+
+        if (price && !isValidPrice(price)) {
+            return res.render('adminPanel/adminProductsAdd', {
+                error: 'قیمت باید یک عدد معتبر باشد'
             });
         }
 
@@ -166,7 +206,7 @@ router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
         
-        if (!productId || isNaN(parseInt(productId))) {
+        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
             return res.redirect('/admin/products');
         }
 
@@ -193,7 +233,7 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
         const { title, subtitle, price, description, image } = req.body;
 
-        if (!productId || isNaN(parseInt(productId))) {
+        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
             return res.redirect('/admin/products');
         }
 
@@ -207,6 +247,13 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             return res.render('adminPanel/adminProductsEdit', { 
                 product: { id: productId, ...products[productId] },
                 error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد'
+            });
+        }
+
+        if (price && !isValidPrice(price)) {
+            return res.render('adminPanel/adminProductsEdit', {
+                product: { id: productId, ...products[productId] },
+                error: 'قیمت باید یک عدد معتبر باشد'
             });
         }
 
@@ -235,7 +282,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
 
-        if (!productId || isNaN(parseInt(productId))) {
+        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
             return res.redirect('/admin/products');
         }
 

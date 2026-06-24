@@ -3,8 +3,14 @@ const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const escapeHtml = require('escape-html');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
+
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    console.error('❌ JWT_SECRET is not defined in environment variables');
+    process.exit(1);
+}
 
 // ==============================
 // CONSTANTS
@@ -20,10 +26,18 @@ const BLOGS_PATH = path.join(DATA_DIR, 'blogs.json');
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
-        return JSON.parse(content);
+        if (!content || content.trim() === '') {
+            return {}; // یا [] بسته به نیاز
+        }
+        const parsed = JSON.parse(content);
+        // اگر آرایه بود و آبجکت مد نظر است، تبدیل کن
+        if (Array.isArray(parsed)) {
+            return parsed;
+        }
+        return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            throw new Error(`File not found: ${filePath}`);
+            return {}; // فایل وجود ندارد
         }
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
@@ -64,14 +78,24 @@ const verifyToken = (token) => {
 // ==============================
 
 const checkToken = (req, res, next) => {
-    const token = req.cookies?.adminToken;
+    try {
+        const token = req.cookies?.adminToken;
+        if (!token) {
+            return res.redirect('/admin/login');
+        }
 
-    if (!token || !verifyToken(token)) {
-        return res.redirect('/admin/login');
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.redirect('/admin/login');
+        }
+
+        req.user = decoded;
+        next();
+    } catch (err) {
+        console.error('CheckToken error:', err.message);
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
     }
-
-    req.user = verifyToken(token);
-    next();
 };
 
 // ==============================
@@ -107,7 +131,12 @@ router.get('/add', checkToken, (req, res) => {
 // Add new blog
 router.post('/add', checkToken, async (req, res) => {
     try {
-        const { title, subtitle, writer, date, image, text } = req.body;
+        const title = escapeHtml(req.body.title.trim());
+        const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
+        const writer = escapeHtml(req.body.writer?.trim() || '');
+        const date = escapeHtml(req.body.date?.trim() || '');
+        const image = escapeHtml(req.body.image?.trim() || '');
+        const text = escapeHtml(req.body.text?.trim() || '');
 
         // اعتبارسنجی
         if (!title || title.trim() === '') {
@@ -159,7 +188,7 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const blogId = req.params.id;
 
         // اعتبارسنجی ID
-        if (!blogId || isNaN(parseInt(blogId))) {
+        if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
             return res.redirect('/admin/blogs');
         }
 
@@ -184,10 +213,15 @@ router.get('/edit/:id', checkToken, async (req, res) => {
 router.post('/edit/:id', checkToken, async (req, res) => {
     try {
         const blogId = req.params.id;
-        const { title, subtitle, writer, date, image, text } = req.body;
+        const title = escapeHtml(req.body.title.trim());
+        const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
+        const writer = escapeHtml(req.body.writer?.trim() || '');
+        const date = escapeHtml(req.body.date?.trim() || '');
+        const image = escapeHtml(req.body.image?.trim() || '');
+        const text = escapeHtml(req.body.text?.trim() || '');
 
         // اعتبارسنجی ID
-        if (!blogId || isNaN(parseInt(blogId))) {
+        if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
             return res.redirect('/admin/blogs');
         }
 
@@ -239,7 +273,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const blogId = req.params.id;
 
         // اعتبارسنجی ID
-        if (!blogId || isNaN(parseInt(blogId))) {
+        if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
             return res.redirect('/admin/blogs');
         }
 

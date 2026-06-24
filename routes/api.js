@@ -37,6 +37,14 @@ const readJsonFile = async (filePath) => {
 // API: Products (paginated)
 router.get('/products', async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        if (isNaN(page) || page < 1) {
+            return res.status(400).json({ 
+                error: 'Invalid page number', 
+                message: 'شماره صفحه نامعتبر است' 
+            });
+        }
+
         const allProducts = Object.values(await readJsonFile(PATHS.products));
         
         if (!allProducts || allProducts.length === 0) {
@@ -47,7 +55,6 @@ router.get('/products', async (req, res) => {
             });
         }
 
-        const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const start = (page - 1) * limit;
         const end = page * limit;
@@ -77,6 +84,14 @@ router.get('/products', async (req, res) => {
 // API: Blogs (paginated)
 router.get('/blogs/:page', async (req, res) => {
     try {
+        const page = parseInt(req.params.page) || 1;
+        if (isNaN(page) || page < 1) {
+            return res.status(400).json({ 
+                error: 'Invalid page number', 
+                message: 'شماره صفحه نامعتبر است' 
+            });
+        }
+
         const blogs = Object.values(await readJsonFile(PATHS.blogs));
         
         if (!blogs || blogs.length === 0) {
@@ -87,7 +102,6 @@ router.get('/blogs/:page', async (req, res) => {
             });
         }
 
-        const page = parseInt(req.params.page) || 1;
         const start = (page - 1) * POSTS_PER_PAGE;
         const end = start + POSTS_PER_PAGE;
 

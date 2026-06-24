@@ -14,42 +14,42 @@
     <form action="/admin/blogs/edit/<%= blog.id %>" method="POST">
         <div>
             <label for="title">عنوان</label>
-            <input type="text" id="title" name="title" value="<%= blog.title %>" required>
+            <input type="text" id="title" name="title" value="<%= blog.title %>" maxlength="200" required>
         </div>
 
         <br>
 
         <div>
             <label for="subtitle">زیرعنوان</label>
-            <input type="text" id="subtitle" name="subtitle" value="<%= blog.subtitle || '' %>">
+            <input type="text" id="subtitle" name="subtitle" value="<%= blog.subtitle || '' %>" maxlength="500">
         </div>
 
         <br>
 
         <div>
             <label for="writer">نویسنده</label>
-            <input type="text" id="writer" name="writer" value="<%= blog.writer || '' %>">
+            <input type="text" id="writer" name="writer" value="<%= blog.writer || '' %>" maxlength="100">
         </div>
 
         <br>
 
         <div>
             <label for="date">تاریخ</label>
-            <input type="text" id="date" name="date" value="<%= blog.date || '' %>">
+            <input type="text" id="date" name="date" value="<%= blog.date || '' %>" maxlength="20">
         </div>
 
         <br>
 
         <div>
             <label for="image">آدرس تصویر</label>
-            <input type="text" id="image" name="image" value="<%= blog.image || '' %>">
+            <input type="url" id="image" name="image" value="<%= blog.image || '' %>" placeholder="https://example.com/image.jpg" maxlength="500">
         </div>
 
         <br>
 
         <div>
             <label for="text">متن بلاگ</label>
-            <textarea id="text" name="text" rows="10"><%= blog.text || '' %></textarea>
+            <textarea id="text" name="text" rows="10" maxlength="50000"><%= blog.text || '' %></textarea>
         </div>
 
         <br>

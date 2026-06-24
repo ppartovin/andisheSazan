@@ -72,7 +72,7 @@
     <script>
         // Pass server-side data to global scope BEFORE loading external script
         window.productData = {
-            images: <%- JSON.stringify(data.image) %>
+            images: <%= JSON.stringify(data.image).replace(/<\//g, '<\\/') %>
         };
     </script>
 
@@ -134,7 +134,7 @@
             <div class="description-wrapper">
                 <!-- Short description (first 150 characters) -->
                 <p id="short-desc">
-                    <%- data.description.substring(0, 150) + (data.description.length > 150 ? '...' : '') %>
+                    <%= data.description.substring(0, 150) + (data.description.length > 150 ? '...' : '') %>
                 </p>
 
                 <!-- Full description (hidden by default) -->

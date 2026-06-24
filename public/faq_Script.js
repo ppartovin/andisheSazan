@@ -22,13 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Toggle answer on title click
         if (title) {
-            title.onclick = function() {
+            title.addEventListener('click', function() {
                 if (content.style.display === 'none') {
                     content.style.display = 'block';
                 } else {
                     content.style.display = 'none';
                 }
-            };
+            });
         }
     });
 
@@ -57,15 +57,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Search on button click
     if (searchButton) {
-        searchButton.onclick = filterFaqs;
+        searchButton.addEventListener('click', filterFaqs);
     }
 
     // Search on Enter key
     if (searchInput) {
-        searchInput.onkeyup = function(e) {
+        searchInput.addEventListener('keyup', function(e) {
             if (e.key === 'Enter') {
                 filterFaqs();
             }
-        };
+        });
     }
 });

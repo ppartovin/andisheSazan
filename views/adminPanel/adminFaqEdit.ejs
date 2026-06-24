@@ -14,14 +14,14 @@
     <form action="/admin/faq/edit/<%= faq.id %>" method="POST">
         <div>
             <label for="question">سوال</label>
-            <input type="text" id="question" name="question" value="<%= faq.question %>" required>
+            <input type="text" id="question" name="question" value="<%= faq.question %>" maxlength="500" placeholder="سوال خود را وارد کنید..." required>
         </div>
 
         <br>
 
         <div>
             <label for="answer">پاسخ</label>
-            <textarea id="answer" name="answer" rows="5"><%= faq.answer || '' %></textarea>
+            <textarea id="answer" name="answer" rows="5" maxlength="2000" placeholder="پاسخ سوال را وارد کنید..."><%= faq.answer || '' %></textarea>
         </div>
 
         <br>
