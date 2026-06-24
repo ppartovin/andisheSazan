@@ -7,6 +7,10 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { readFile } = require('fs').promises;
 const path = require('path');
+const compression = require('compression');
+
+// Import config
+const config = require('./config');
 
 const app = express();
 
@@ -15,35 +19,49 @@ const app = express();
 // ==============================
 
 app.use(cookieParser());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '1mb', verify: config.jsonDepthVerify }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
-app.use(helmet());
+app.use(helmet(config.helmetConfig));
+app.use(compression());
 
-// View engine
+// ==============================
+// RATE LIMITING
+// ==============================
+
+app.use('/admin/login', config.loginLimiter);
+app.use(config.limiterPerMinute);
+app.use(config.limiterPer30Minutes);
+
+
+// ==============================
+// VIEW ENGINE & STATIC
+// ==============================
+
+app.set('etag', 'strong');
 app.set('view engine', 'ejs');
-
-// Static files
 app.use('/public', express.static('public'));
 
 // ==============================
-// CONSTANTS
+// VALIDATION MIDDLEWARE
 // ==============================
 
-const DATA_DIR = path.join(__dirname, 'data');
-const PATHS = {
-    products: path.join(DATA_DIR, 'products.json'),
-    blogs: path.join(DATA_DIR, 'blogs.json'),
-    faqs: path.join(DATA_DIR, 'faqs.json'),
-    indexData: path.join(DATA_DIR, 'index_data.json')
+const validateId = (req, res, next) => {
+    const id = req.params.id;
+    if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
+        return res.status(404).render('404', { message: 'شناسه نامعتبر است' });
+    }
+    next();
 };
-const POSTS_PER_PAGE = 5;
-const TOP_PRODUCTS_MAX = 6;
 
 // ==============================
 // HELPERS
 // ==============================
 
 const renderPage = (res, pageName, lang, data = {}) => {
+    if (!config.VALID_LANGS.includes(lang)) {
+        return res.redirect(`/${pageName}/fa`);
+    }
+
     const suffix = lang === 'en' ? 'En' : 'Fa';
     const viewName = `${pageName}${suffix}`;
 
@@ -71,11 +89,10 @@ const readJsonFile = async (filePath) => {
 // ROUTES
 // ==============================
 
-// Admin routes
+// Admin & API routes
 const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
 
-// API routes
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
 
@@ -90,16 +107,20 @@ app.get('/index', (req, res) => res.redirect('/index/fa'));
 // Index page
 app.get('/index/:lang', async (req, res) => {
     try {
-        const indexConfig = await readJsonFile(PATHS.indexData);
-        const allProducts = await readJsonFile(PATHS.products);
+        const indexConfig = await readJsonFile(config.PATHS.indexData);
+        const allProducts = await readJsonFile(config.PATHS.products);
 
-        const topProductIds = indexConfig.top_products || [];
-        let topProducts = topProductIds
-            .filter(id => allProducts[id])
-            .map(id => ({ id, ...allProducts[id] }))
-            .slice(0, TOP_PRODUCTS_MAX);
+        const showcaseCodes = indexConfig.top_products || [];
+        const topProducts = [];
+        const productsArray = Object.values(allProducts);
 
-        renderPage(res, 'index', req.params.lang, { topProducts });
+        showcaseCodes.forEach(code => {
+            const product = productsArray.find(p => p.unique_code === code);
+            if (product) topProducts.push(product);
+        });
+
+        const finalProducts = topProducts.slice(0, config.TOP_PRODUCTS_MAX);
+        renderPage(res, 'index', req.params.lang, { topProducts: finalProducts });
     } catch (err) {
         console.error('Index page error:', err.message);
         res.status(500).render('err', { message: 'خطا در بارگذاری صفحه اصلی' });
@@ -153,9 +174,9 @@ app.get('/products/:lang', (req, res) => {
 // Single product
 app.get('/product', (req, res) => res.redirect('/products'));
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
-app.get('/product/:id/:lang', async (req, res) => {
+app.get('/product/:id/:lang', validateId, async (req, res) => {
     try {
-        const products = await readJsonFile(PATHS.products);
+        const products = await readJsonFile(config.PATHS.products);
         const product = products[req.params.id];
 
         if (!product) {
@@ -216,9 +237,9 @@ app.get('/blogs/:lang', (req, res) => {
 // Single blog
 app.get('/blog', (req, res) => res.redirect('/blogs'));
 app.get('/blog/:id', (req, res) => res.redirect(`/blog/${req.params.id}/fa`));
-app.get('/blog/:id/:lang', async (req, res) => {
+app.get('/blog/:id/:lang', validateId, async (req, res) => {
     try {
-        const blogs = await readJsonFile(PATHS.blogs);
+        const blogs = await readJsonFile(config.PATHS.blogs);
         const blog = blogs[req.params.id];
 
         if (!blog) {
@@ -236,7 +257,7 @@ app.get('/blog/:id/:lang', async (req, res) => {
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
 app.get('/faq/:lang', async (req, res) => {
     try {
-        const faqs = await readJsonFile(PATHS.faqs);
+        const faqs = await readJsonFile(config.PATHS.faqs);
 
         if (!faqs || Object.keys(faqs).length === 0) {
             return res.status(404).render('404', { message: 'سوالی یافت نشد' });
@@ -279,5 +300,5 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ==============================
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

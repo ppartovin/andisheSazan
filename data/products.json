@@ -21,7 +21,8 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC123-XYZ"
   },
   "2": {
     "title": "محصول 4",
@@ -49,7 +50,8 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC124-XYZ"
   },
   "3": {
     "title": "محصول 5",
@@ -77,7 +79,8 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC125-XYZ"
   },
   "4": {
     "title": "محصول 6",
@@ -105,7 +108,8 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC126-XYZ"
   },
   "5": {
     "title": "محصول 7",
@@ -133,7 +137,8 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC127-XYZ"
   },
   "6": {
     "title": "محصول 8",
@@ -161,16 +166,13 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC128-XYZ"
   },
   "7": {
-    "title": "محصول 9",
+    "title": "محصول 99",
     "subtitle": "زیر تیتر محصول 9",
-    "image": [
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRArrXM2909-PxGCoFucqTcbkmTM6Eu2bl49bcQH3yxMQ&s=10",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwHmWNK2NORvV3qpdevYKoe4PQZMGhwPWcek_4AxNLVA&s=10",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTs_BCeYOVGBRJafDr9XYoqZVsaMscdHC_5XN5ZhwN3jg&s=10"
-    ],
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRArrXM2909-PxGCoFucqTcbkmTM6Eu2bl49bcQH3yxMQ&s=10,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwHmWNK2NORvV3qpdevYKoe4PQZMGhwPWcek_4AxNLVA&s=10,https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTs_BCeYOVGBRJafDr9XYoqZVsaMscdHC_5XN5ZhwN3jg&s=10",
     "shops": [
       {
         "name": "دیجیکالا",
@@ -189,41 +191,15 @@
       "رده ی سنی": "9 تا 99 سال",
       "تعداد بازی کنان": "3 تا 7 نفر"
     },
-    "price": "1000t"
+    "price": "1000t",
+    "unique_code": "PRD-ABC129-XYZ"
   },
   "8": {
-    "title": "محصول 10",
-    "subtitle": "زیر تیتر محصول 10",
-    "image": [
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRArrXM2909-PxGCoFucqTcbkmTM6Eu2bl49bcQH3yxMQ&s=10",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwHmWNK2NORvV3qpdevYKoe4PQZMGhwPWcek_4AxNLVA&s=10",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTs_BCeYOVGBRJafDr9XYoqZVsaMscdHC_5XN5ZhwN3jg&s=10"
-    ],
-    "shops": [
-      {
-        "name": "دیجیکالا",
-        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjlmV--lIbvhI3GWlw1vvpP2WiqECz_b906Ixd67FlVA&s",
-        "link": "https://www.digikala.com/"
-      },
-      {
-        "name": "طرب",
-        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRm0QtpDFSnJnU_LGkK1PTLFyHMb9fbtjcTJ4Mm5AdCHQ&s",
-        "link": "https://torob.com/"
-      }
-    ],
-    "description": "اینجا توضیحات طولانی بنویس",
-    "properties": {
-      "زمان بازی": "15 دقیقه",
-      "رده ی سنی": "9 تا 99 سال",
-      "تعداد بازی کنان": "3 تا 7 نفر"
-    },
-    "price": "1000t"
-  },
-  "9": {
-    "title": "1111111",
-    "subtitle": "12",
-    "price": "12",
-    "description": "12",
-    "image": "12"
+    "title": "111111111",
+    "subtitle": "1111111111",
+    "price": "111111111",
+    "description": "11111111111",
+    "image": "111111111",
+    "unique_code": "PRD-MQRZXM5L-UL6E"
   }
 }

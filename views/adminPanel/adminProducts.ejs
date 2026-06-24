@@ -21,6 +21,8 @@
                 <th>#</th>
                 <th>عنوان</th>
                 <th>قیمت</th>
+                <th>کد یکتا</th>
+                <th>ویترین</th>
                 <th>عملیات</th>
             </tr>
         </thead>
@@ -31,6 +33,14 @@
                         <td><%= index + 1 %></td>
                         <td><%= product.title %></td>
                         <td><%= product.price || '-' %></td>
+                        <td><%= product.unique_code || '-' %></td>
+                        <td>
+                            <% if (product.isShowcase) { %>
+                                ⭐ <a href="/admin/products/toggle-showcase/<%= product.unique_code %>">حذف از ویترین</a>
+                            <% } else { %>
+                                <a href="/admin/products/toggle-showcase/<%= product.unique_code %>">➕ افزودن به ویترین</a>
+                            <% } %>
+                        </td>
                         <td>
                             <a href="/admin/products/edit/<%= product.id %>">ویرایش</a>
                             |
@@ -40,7 +50,7 @@
                 <% }) %>
             <% } else { %>
                 <tr>
-                    <td colspan="4">هیچ محصولی وجود ندارد</td>
+                    <td colspan="6">هیچ محصولی وجود ندارد</td>
                 </tr>
             <% } %>
         </tbody>

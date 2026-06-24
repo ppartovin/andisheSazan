@@ -5,7 +5,11 @@ const jwt = require('jsonwebtoken');
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
+const SECRET_KEY = process.env.JWT_SECRET;
+if (!SECRET_KEY) {
+    console.error('❌ JWT_SECRET is not defined in environment variables');
+    process.exit(1);
+}
 
 // ==============================
 // CONSTANTS
@@ -35,14 +39,26 @@ const verifyToken = (token) => {
 // ==============================
 
 const checkToken = (req, res, next) => {
-    const token = req.cookies?.adminToken;
+    try {
+        const token = req.cookies?.adminToken;
 
-    if (!token || !verifyToken(token)) {
-        return res.redirect('/admin/login');
+        if (!token) {
+            return res.redirect('/admin/login');
+        }
+
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return res.redirect('/admin/login');
+        }
+
+        req.user = decoded;
+        next();
+    } catch (err) {
+        console.error('CheckToken error:', err.message);
+        // در صورت هر خطایی، کاربر را به لاگین بفرست
+        res.clearCookie('adminToken');
+        res.redirect('/admin/login');
     }
-
-    req.user = verifyToken(token);
-    next();
 };
 
 // ==============================
@@ -52,15 +68,17 @@ const checkToken = (req, res, next) => {
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
+        if (!content || content.trim() === '') {
+            return []; // فایل خالی → آرایه خالی
+        }
         return JSON.parse(content);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            throw new Error(`File not found: ${filePath}`);
+            return []; // فایل وجود ندارد → آرایه خالی
         }
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
-
 // ==============================
 // ROUTES
 // ==============================
@@ -101,10 +119,24 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // اعتبارسنجی ورودی
+        // اعتبارسنجی طول
         if (!username || !password) {
+            return res.render('adminPanel/adminLogin', { error: 'نام کاربری و رمز عبور الزامی است' });
+        }
+
+        if (username.length < 3 || username.length > 50) {
+            return res.render('adminPanel/adminLogin', { error: 'نام کاربری باید بین ۳ تا ۵۰ کاراکتر باشد' });
+        }
+
+        if (password.length < 6 || password.length > 100) {
+            return res.render('adminPanel/adminLogin', { error: 'رمز عبور باید بین ۶ تا ۱۰۰ کاراکتر باشد' });
+        }
+
+        // اعتبارسنجی کاراکترهای username
+        const usernameRegex = /^[a-zA-Z0-9_.]+$/;
+        if (!usernameRegex.test(username)) {
             return res.render('adminPanel/adminLogin', { 
-                error: 'نام کاربری و رمز عبور الزامی است' 
+                error: 'نام کاربری فقط می‌تواند شامل حروف انگلیسی، اعداد، زیرخط و نقطه باشد' 
             });
         }
 
@@ -120,13 +152,15 @@ router.post('/login', async (req, res) => {
         if (!isMatch) {
             return res.render('adminPanel/adminLogin', { error: 'رمز عبور اشتباه است' });
         }
+        console.log(`✅ Login successful: ${username} from ${req.ip} at ${new Date().toISOString()}`);
+
 
         const token = generateToken(username);
 
         res.cookie('adminToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'Strict',
             maxAge: 60 * 60 * 1000 // 1 hour
         });
 
@@ -152,6 +186,7 @@ router.get('/panel', checkToken, (req, res) => {
 router.get('/logout', (req, res) => {
     try {
         res.clearCookie('adminToken');
+        delete req.user;
         res.redirect('/admin/login');
     } catch (err) {
         console.error('Logout error:', err.message);

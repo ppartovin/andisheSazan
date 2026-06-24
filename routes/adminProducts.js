@@ -12,6 +12,7 @@ const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key';
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PRODUCTS_PATH = path.join(DATA_DIR, 'products.json');
+const INDEX_DATA_PATH = path.join(DATA_DIR, 'index_data.json');
 
 // ==============================
 // HELPERS
@@ -47,6 +48,12 @@ const reindexItems = (items) => {
     return newItems;
 };
 
+const generateUniqueCode = () => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `PRD-${timestamp}-${random}`;
+};
+
 // ==============================
 // TOKEN FUNCTIONS
 // ==============================
@@ -79,12 +86,17 @@ const checkToken = (req, res, next) => {
 // ==============================
 
 // List all products
+// List all products
 router.get('/', checkToken, async (req, res) => {
     try {
         const productsObj = await readJsonFile(PRODUCTS_PATH);
+        const indexData = await readJsonFile(INDEX_DATA_PATH);
+        const showcaseCodes = indexData.top_products || [];
+
         const products = Object.entries(productsObj).map(([id, item]) => ({
             id,
-            ...item
+            ...item,
+            isShowcase: showcaseCodes.includes(item.unique_code)
         }));
 
         res.render('adminPanel/adminProducts', { products });
@@ -95,7 +107,7 @@ router.get('/', checkToken, async (req, res) => {
 });
 
 // Show add form
-router.get('/add', checkToken, (req, res) => {
+router.get('/add', checkToken, async (req, res) => {
     try {
         res.render('adminPanel/adminProductsAdd', { error: null });
     } catch (err) {
@@ -109,7 +121,6 @@ router.post('/add', checkToken, async (req, res) => {
     try {
         const { title, subtitle, price, description, image } = req.body;
 
-        // اعتبارسنجی
         if (!title || title.trim() === '') {
             return res.render('adminPanel/adminProductsAdd', { 
                 error: 'عنوان محصول الزامی است' 
@@ -127,12 +138,16 @@ router.post('/add', checkToken, async (req, res) => {
         const ids = Object.keys(products).map(Number);
         const nextId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
 
+        // تولید unique_code
+        const uniqueCode = generateUniqueCode();
+
         products[nextId] = {
             title: title.trim(),
             subtitle: subtitle?.trim() || '',
             price: price?.trim() || '',
             description: description?.trim() || '',
-            image: image?.trim() || ''
+            image: image?.trim() || '',
+            unique_code: uniqueCode
         };
 
         const reindexedProducts = reindexItems(products);
@@ -151,7 +166,6 @@ router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
         
-        // اعتبارسنجی ID
         if (!productId || isNaN(parseInt(productId))) {
             return res.redirect('/admin/products');
         }
@@ -179,7 +193,6 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
         const { title, subtitle, price, description, image } = req.body;
 
-        // اعتبارسنجی ID
         if (!productId || isNaN(parseInt(productId))) {
             return res.redirect('/admin/products');
         }
@@ -190,7 +203,6 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             return res.redirect('/admin/products');
         }
 
-        // اعتبارسنجی عنوان
         if (title && title.length > 200) {
             return res.render('adminPanel/adminProductsEdit', { 
                 product: { id: productId, ...products[productId] },
@@ -223,7 +235,6 @@ router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
 
-        // اعتبارسنجی ID
         if (!productId || isNaN(parseInt(productId))) {
             return res.redirect('/admin/products');
         }
@@ -232,6 +243,14 @@ router.get('/delete/:id', checkToken, async (req, res) => {
 
         if (!products[productId]) {
             return res.redirect('/admin/products');
+        }
+
+        // حذف از ویترین اگر وجود داشت
+        const indexData = await readJsonFile(INDEX_DATA_PATH);
+        const uniqueCode = products[productId].unique_code;
+        if (uniqueCode) {
+            indexData.showcase_products = (indexData.showcase_products || []).filter(code => code !== uniqueCode);
+            await writeJsonFile(INDEX_DATA_PATH, indexData);
         }
 
         delete products[productId];
@@ -244,6 +263,48 @@ router.get('/delete/:id', checkToken, async (req, res) => {
     } catch (err) {
         console.error('Delete product error:', err.message);
         res.status(500).render('err', { message: 'خطا در حذف محصول' });
+    }
+});
+
+// ==============================
+// TOGGLE SHOWCASE
+// ==============================
+
+router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
+    try {
+        const uniqueCode = req.params.uniqueCode;
+
+        if (!uniqueCode) {
+            return res.redirect('/admin/products');
+        }
+
+        // خواندن index_data.json
+        let indexData;
+        try {
+            indexData = await readJsonFile(INDEX_DATA_PATH);
+        } catch (err) {
+            indexData = { top_products: [] };
+        }
+
+        indexData.top_products = indexData.top_products || [];
+
+        const index = indexData.top_products.indexOf(uniqueCode);
+
+        if (index > -1) {
+            // حذف از ویترین
+            indexData.top_products.splice(index, 1);
+        } else {
+            // افزودن به ویترین
+            indexData.top_products.push(uniqueCode);
+        }
+
+        await writeJsonFile(INDEX_DATA_PATH, indexData);
+
+        res.redirect('/admin/products');
+
+    } catch (err) {
+        console.error('Toggle showcase error:', err.message);
+        res.status(500).render('err', { message: 'خطا در تغییر وضعیت ویترین' });
     }
 });
 

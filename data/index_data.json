@@ -1,7 +1,14 @@
 {
-	"top_products":[
-		1,
-		3,
-		10
-	]
+  "top_products": [
+    "PRD-ABC124-XYZ",
+    "PRD-ABC127-XYZ",
+    "PRD-ABC129-XYZ",
+    "PRD-MQRZXM5L-UL6E",
+    "PRD-ABC128-XYZ",
+    "PRD-ABC125-XYZ",
+    "PRD-ABC123-XYZ",
+    "PRD-ABC126-XYZ",
+    "PRD-MQS35GUD-FMYC"
+  ],
+  "showcase_products": []
 }

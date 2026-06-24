@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,41 +50,50 @@
     <!-- ============================== -->
     <%- include('./partials/header.ejs') %>
 
-    <!-- ============================== -->
-    <!-- MAIN CONTENT -->
-    <!-- ============================== -->
-    <main>
+        <!-- ============================== -->
+        <!-- MAIN CONTENT -->
+        <!-- ============================== -->
+        <main>
+
+            <!-- ============================== -->
+            <!-- SECTION: FAQ Search -->
+            <!-- ============================== -->
+            <section class="faq-search">
+                <input type="text" placeholder="جستجو در سوالات">
+                <button>جستجو</button>
+            </section>
+
+            <!-- ============================== -->
+            <!-- SECTION: FAQ List -->
+            <!-- ============================== -->
+            <section class="faq">
+                <h2>سوالات متداول</h2>
+
+                <div class="faq-list">
+                    <% if (data && Object.keys(data).length> 0) { %>
+                        <% Object.values(data).forEach(item=> { %>
+                            <div class="faq-item">
+                                <div class="faq-title">
+                                    <%= item.question %>
+                                </div>
+                                <div class="faq-content">
+                                    <%= item.answer %>
+                                </div>
+                            </div>
+                        <% }) %>
+                        <% } else { %>
+                            <p>هیچ سوالی یافت نشد.</p>
+                        <% } %>
+                </div>
+            </section>
+
+        </main>
 
         <!-- ============================== -->
-        <!-- SECTION: FAQ Search -->
+        <!-- FOOTER: Include footer partial -->
         <!-- ============================== -->
-        <section class="faq-search">
-            <input type="text" placeholder="جستجو در سوالات">
-            <button>جستجو</button>
-        </section>
-
-        <!-- ============================== -->
-        <!-- SECTION: FAQ List -->
-        <!-- ============================== -->
-        <section class="faq">
-            <h2>سوالات متداول</h2>
-
-            <div class="faq-list">
-                <% data.forEach(item => { %>
-                    <div class="faq-item">
-                        <div class="faq-title"><%= item.question %></div>
-                        <div class="faq-content"><%= item.answer %></div>
-                    </div>
-                <% }) %>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ============================== -->
-    <!-- FOOTER: Include footer partial -->
-    <!-- ============================== -->
-    <%- include('./partials/footer.ejs') %>
+        <%- include('./partials/footer.ejs') %>
 
 </body>
+
 </html>
