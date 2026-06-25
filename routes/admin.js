@@ -93,6 +93,9 @@ router.use('/blogs', blogRoutes);
 const faqRoutes = require('./adminFaq');
 router.use('/faq', faqRoutes);
 
+const imagesRoutes = require('./adminImages')
+router.use('/images',imagesRoutes)
+
 // Redirect root to login
 router.get('/', (req, res) => {
     res.redirect('/admin/login');

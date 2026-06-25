@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>افزودن تصویر</title>
+</head>
+<body>
+
+    <h1>افزودن تصویر جدید</h1>
+    <p><a href="/admin/images">بازگشت به لیست تصاویر</a> | <a href="/admin/logout">خروج</a></p>
+
+    <hr>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+    <form action="/admin/images/add" method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="name">نام تصویر</label>
+            <input type="text" id="name" name="name" maxlength="50" pattern="[a-zA-Z0-9_]+" placeholder="مثلاً: banner_main" required>
+        </div>
+
+        <br>
+
+        <div>
+            <label for="image">انتخاب تصویر</label>
+            <input type="file" id="image" name="image" accept="image/*" required>
+        </div>
+
+        <br>
+
+        <button type="submit">آپلود</button>
+        <a href="/admin/images">انصراف</a>
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت تصاویر</title>
+</head>
+<body>
+
+    <h1>مدیریت تصاویر</h1>
+    <p><a href="/admin/panel">بازگشت به پنل</a> | <a href="/admin/logout">خروج</a></p>
+
+    <a href="/admin/images/add">➕ افزودن عکس</a>
+	
+    <hr>
+
+    <br><br>
+
+    <% if (images && images.length > 0) { %>
+        <% images.forEach(img => { %>
+            <div>
+                <img src="<%= img.link %>" alt="<%= img.name %>" style="max-width:200px">
+                <div><%= img.name %></div>
+                <a href="<%= img.link %>" target="_blank" rel="noopener noreferrer"><%= img.link %></a>
+                <form action="/admin/images/delete/<%= encodeURIComponent(img.name) %>" method="POST">
+                    <button type="submit">حذف</button>
+                </form>
+                <hr>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <p>هیچ تصویری یافت نشد</p>
+    <% } %>
+
+</body>
+</html>
