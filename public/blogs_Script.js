@@ -81,6 +81,7 @@ function renderPosts(posts) {
         const link = document.createElement('a');
         link.href = isValidUrl(post.link) ? post.link : '#';
         link.textContent = 'ادامه مطلب';
+        link.className = 'btn-view';
         div.appendChild(link);
 
         container.appendChild(div);

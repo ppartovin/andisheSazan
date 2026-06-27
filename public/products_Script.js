@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const link = document.createElement('a');
             link.href = isValidUrl(product.link) ? product.link : '#';
             link.textContent = 'مشاهده';
+            link.className = 'btn-view'; // ← اضافه کردن کلاس
             article.appendChild(link);
 
             container.appendChild(article);
