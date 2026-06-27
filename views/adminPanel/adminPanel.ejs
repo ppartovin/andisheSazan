@@ -2,32 +2,240 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پنل مدیریت</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #1F1F1F;
+            --secondary: #3A3A3A;
+            --accent: #A0845C;
+            --accent-light: #C4A97D;
+            --bg: #FAFAF8;
+            --bg-warm: #F5F3EF;
+            --border: #E8E6E1;
+            --text: #2D2D2D;
+            --text-light: #787878;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ============================== */
+        /* MAIN CONTAINER */
+        /* ============================== */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* ============================== */
+        /* HEADER */
+        /* ============================== */
+        .admin-header {
+            padding: 2rem 0 1rem;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .admin-header .user-info {
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .admin-header .user-info a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color .2s;
+        }
+
+        .admin-header .user-info a:hover {
+            color: var(--primary);
+        }
+
+        /* ============================== */
+        /* DASHBOARD GRID */
+        /* ============================== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .dashboard-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 2rem 1.8rem;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .04);
+        }
+
+        .dashboard-card .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-card h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .dashboard-card p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-card a {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            padding: 0.4rem 1.2rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background .2s;
+            border-radius: 0;
+        }
+
+        .dashboard-card a:hover {
+            background: var(--accent);
+        }
+
+        /* ============================== */
+        /* RESPONSIVE */
+        /* ============================== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1.2rem;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .dashboard-card {
+                padding: 1.5rem 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.8rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .dashboard-card h2 {
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <h1>ادمین پنل</h1>
-    <p><%= username %> | <a href="/admin/logout">خروج از حساب</a></p>
+    <!-- ============================== -->
+    <!-- MAIN CONTAINER -->
+    <!-- ============================== -->
+    <div class="container">
 
-    <hr>
+        <!-- ============================== -->
+        <!-- HEADER -->
+        <!-- ============================== -->
+        <header class="admin-header">
+            <h1>ادمین پنل</h1>
+            <div class="user-info">
+                <%= username %> | <a href="/admin/logout">خروج از حساب</a>
+            </div>
+        </header>
 
-    <h2>📦 محصولات</h2>
-    <a href="/admin/products">مدیریت محصولات</a>
+        <!-- ============================== -->
+        <!-- DASHBOARD GRID -->
+        <!-- ============================== -->
+        <div class="dashboard-grid">
 
-    <hr>
+            <!-- محصولات -->
+            <div class="dashboard-card">
+                <span class="icon">📦</span>
+                <h2>محصولات</h2>
+                <p>مدیریت محصولات فروشگاه</p>
+                <a href="/admin/products">مدیریت محصولات</a>
+            </div>
 
-    <h2>✍️ بلاگ‌ها</h2>
-    <a href="/admin/blogs">مدیریت بلاگ‌ها</a>
+            <!-- بلاگ‌ها -->
+            <div class="dashboard-card">
+                <span class="icon">✍️</span>
+                <h2>بلاگ‌ها</h2>
+                <p>مدیریت مقالات بلاگ</p>
+                <a href="/admin/blogs">مدیریت بلاگ‌ها</a>
+            </div>
 
-    <hr>
+            <!-- سوالات متداول -->
+            <div class="dashboard-card">
+                <span class="icon">❓</span>
+                <h2>سوالات متداول</h2>
+                <p>مدیریت سوالات متداول</p>
+                <a href="/admin/faq">مدیریت سوالات متداول</a>
+            </div>
 
-    <h2>❓ سوالات متداول</h2>
-    <a href="/admin/faq">مدیریت سوالات متداول</a>
+            <!-- تصاویر -->
+            <div class="dashboard-card">
+                <span class="icon">🖼️</span>
+                <h2>تصاویر</h2>
+                <p>مدیریت تصاویر سایت</p>
+                <a href="/admin/images">مدیریت تصاویر</a>
+            </div>
 
-    <hr>
+        </div>
 
-    <h2>عکس ها</h2>
-    <a href="/admin/images">مدیریت عکس ها</a>
+    </div>
 
 </body>
 </html>

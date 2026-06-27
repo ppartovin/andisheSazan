@@ -1,6 +1,6 @@
 /**
  * Blog Page Script
- * Handles infinite scroll loading of blog posts
+ * Handles infinite scroll + search (client-side filtering)
  */
 
 // ==============================
@@ -10,13 +10,8 @@
 function isValidUrl(url) {
     if (!url) return false;
     const trimmed = url.trim();
-    
-    // مسیرهای نسبی مجاز هستند
     if (trimmed.startsWith('/')) return true;
-    
-    // پشتیبانی از mailto: و tel:
     if (trimmed.startsWith('mailto:') || trimmed.startsWith('tel:')) return true;
-    
     try {
         const parsed = new URL(trimmed);
         return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -28,10 +23,7 @@ function isValidUrl(url) {
 function isValidImageUrl(url) {
     if (!url) return false;
     const trimmed = url.trim();
-    
-    // مسیرهای نسبی مجاز هستند
     if (trimmed.startsWith('/')) return true;
-    
     try {
         const parsed = new URL(trimmed);
         return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -41,12 +33,81 @@ function isValidImageUrl(url) {
 }
 
 // ==============================
-// MAIN CODE
+// STATE
 // ==============================
 
 let page = 1;
 let loading = false;
 let hasMore = true;
+let allPosts = [];          // ذخیره تمام پست‌های لود شده
+let searchTerm = '';
+
+const container = document.getElementById('posts-container');
+const loader = document.getElementById('scroll-loader');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+
+// ==============================
+// RENDER POSTS (بر اساس فیلتر)
+// ==============================
+
+function renderPosts(posts) {
+    container.innerHTML = '';
+    if (posts.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#999;">هیچ مطلبی یافت نشد.</p>';
+        return;
+    }
+    posts.forEach(post => {
+        const div = document.createElement('div');
+        div.className = 'post';
+
+        const img = document.createElement('img');
+        img.src = isValidImageUrl(post.image) ? post.image : '';
+        img.alt = post.title || 'تصویر بلاگ';
+        div.appendChild(img);
+
+        const title = document.createElement('h3');
+        title.textContent = post.title || 'بدون عنوان';
+        div.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = post.subtitle || '';
+        div.appendChild(subtitle);
+
+        const dateSpan = document.createElement('span');
+        dateSpan.textContent = post.date || '';
+        div.appendChild(dateSpan);
+
+        const link = document.createElement('a');
+        link.href = isValidUrl(post.link) ? post.link : '#';
+        link.textContent = 'ادامه مطلب';
+        div.appendChild(link);
+
+        container.appendChild(div);
+    });
+}
+
+// ==============================
+// FILTER POSTS
+// ==============================
+
+function applyFilter() {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) {
+        renderPosts(allPosts);
+        return;
+    }
+    const filtered = allPosts.filter(post =>
+        (post.title && post.title.toLowerCase().includes(term)) ||
+        (post.subtitle && post.subtitle.toLowerCase().includes(term)) ||
+        (post.text && post.text.toLowerCase().includes(term))
+    );
+    renderPosts(filtered);
+}
+
+// ==============================
+// LOAD POSTS FROM API
+// ==============================
 
 async function loadPosts() {
     if (loading || !hasMore) return;
@@ -62,65 +123,67 @@ async function loadPosts() {
             throw new Error('Invalid data format');
         }
 
-        const container = document.getElementById("posts-container");
+        // اضافه کردن پست‌های جدید به آرایه کلی
+        allPosts = allPosts.concat(data.posts);
 
-        data.posts.forEach(post => {
-            const div = document.createElement("div");
-            div.className = "post";
-
-            // تصویر
-            const img = document.createElement("img");
-            img.src = isValidImageUrl(post.image) ? post.image : '';
-            img.alt = post.title || 'تصویر بلاگ';
-            div.appendChild(img);
-
-            // عنوان
-            const title = document.createElement("h3");
-            title.textContent = post.title || 'بدون عنوان';
-            div.appendChild(title);
-
-            // زیرعنوان
-            const subtitle = document.createElement("p");
-            subtitle.textContent = post.subtitle || '';
-            div.appendChild(subtitle);
-
-            // تاریخ
-            const dateSpan = document.createElement("span");
-            dateSpan.textContent = post.date || '';
-            div.appendChild(dateSpan);
-
-            // لینک ادامه مطلب
-            const link = document.createElement("a");
-            link.href = isValidUrl(post.link) ? post.link : '#';
-            link.textContent = "ادامه مطلب";
-            div.appendChild(link);
-
-            container.appendChild(div);
-        });
+        // اگر جستجو فعال نیست، همه را نشان بده
+        if (!searchTerm.trim()) {
+            renderPosts(allPosts);
+        } else {
+            // در غیر این صورت، فیلتر را اعمال کن
+            applyFilter();
+        }
 
         hasMore = data.hasMore;
         page++;
 
         if (!hasMore) {
-            document.getElementById("scroll-loader").innerText = "مقاله بیشتری وجود ندارد";
+            loader.innerText = 'مقاله بیشتری وجود ندارد';
         }
 
     } catch (err) {
         console.error('Error loading posts:', err);
-        document.getElementById("scroll-loader").innerText = "خطا در بارگذاری مقالات";
+        loader.innerText = 'خطا در بارگذاری مقالات';
     } finally {
         loading = false;
     }
 }
 
-window.addEventListener("scroll", () => {
-    const loader = document.getElementById("scroll-loader");
+// ==============================
+// SEARCH HANDLERS
+// ==============================
+
+function handleSearch() {
+    searchTerm = searchInput.value;
+    // اگر جستجو خالی بود، همه پست‌ها را نشان بده
+    if (!searchTerm.trim()) {
+        renderPosts(allPosts);
+    } else {
+        applyFilter();
+    }
+}
+
+searchBtn.addEventListener('click', handleSearch);
+searchInput.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+        handleSearch();
+    }
+});
+
+// ==============================
+// INFINITE SCROLL
+// ==============================
+
+window.addEventListener('scroll', () => {
     if (!loader) return;
     const rect = loader.getBoundingClientRect();
-
     if (rect.top < window.innerHeight) {
         loadPosts();
     }
 });
+
+// ==============================
+// INITIAL LOAD
+// ==============================
 
 loadPosts();

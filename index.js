@@ -94,6 +94,7 @@ const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
 
 const apiRoutes = require('./routes/api');
+const { error } = require('console');
 app.use('/api', apiRoutes);
 
 // Redirects
@@ -125,6 +126,10 @@ app.get('/index/:lang', async (req, res) => {
         console.error('Index page error:', err.message);
         res.status(500).render('err', { message: 'خطا در بارگذاری صفحه اصلی' });
     }
+});
+
+app.get('/err', (req, res) => {
+    throw new Error('This is a test error');
 });
 
 // About Us

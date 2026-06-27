@@ -5,18 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خطای سرور</title>
 
-    <!-- ============================== -->
-    <!-- STYLES -->
-    <!-- ============================== -->
     <style>
-        body {
-            font-family: sans-serif;
-            text-align: center;
-            padding: 50px;
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #1F1F1F;
+            --secondary: #3A3A3A;
+            --accent: #A0845C;
+            --accent-light: #C4A97D;
+            --bg: #FAFAF8;
+            --bg-warm: #F5F3EF;
+            --border: #E8E6E1;
+            --text: #2D2D2D;
+            --text-light: #787878;
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .error-container {
+            max-width: 600px;
+            text-align: center;
+            padding: 4rem 3rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
         h1 {
-            font-size: 50px;
-            color: #2f3542;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+        }
+
+        p {
+            font-size: 1.05rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.7rem 2.5rem;
+            border-radius: 4px;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .btn-home:hover {
+            background: var(--accent);
+        }
+
+        /* ============================== */
+        /* RESPONSIVE */
+        /* ============================== */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .error-container {
+                padding: 2.5rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            p {
+                font-size: 0.95rem;
+            }
+
+            .btn-home {
+                padding: 0.6rem 1.8rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -26,9 +116,12 @@
     <!-- ============================== -->
     <!-- ERROR CONTENT -->
     <!-- ============================== -->
-    <h1>خطای داخلی سرور</h1>
-    <p>در حال حاضر مشکلی در سیستم رخ داده است، لطفاً بعداً تلاش کنید.</p>
-    <a href="/index">بازگشت به صفحه اصلی</a>
+    <div class="error-container">
+        <span class="error-icon">⚠️</span>
+        <h1>خطای داخلی سرور</h1>
+        <p>در حال حاضر مشکلی در سیستم رخ داده است، لطفاً بعداً تلاش کنید.</p>
+        <a href="/index" class="btn-home">بازگشت به صفحه اصلی</a>
+    </div>
 
 </body>
 </html>
