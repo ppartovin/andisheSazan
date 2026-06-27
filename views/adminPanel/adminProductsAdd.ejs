@@ -33,18 +33,12 @@
             line-height: 1.7;
         }
 
-        /* ============================== */
-        /* MAIN CONTAINER */
-        /* ============================== */
         .container {
-            max-width: 700px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 0 2rem;
         }
 
-        /* ============================== */
-        /* HEADER */
-        /* ============================== */
         .page-header {
             padding: 2rem 0 1rem;
             border-bottom: 2px solid var(--border);
@@ -78,9 +72,6 @@
             color: var(--primary);
         }
 
-        /* ============================== */
-        /* ERROR MESSAGE */
-        /* ============================== */
         .error-message {
             background: #fef2f2;
             border: 1px solid #fecaca;
@@ -88,12 +79,15 @@
             padding: 0.7rem 1rem;
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
-            border-radius: 0;
         }
 
-        /* ============================== */
-        /* FORM */
-        /* ============================== */
+        .form-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -116,7 +110,6 @@
             border: 1px solid var(--border);
             color: var(--text);
             transition: border-color .2s;
-            border-radius: 0;
         }
 
         .form-group input:focus,
@@ -130,10 +123,56 @@
             min-height: 100px;
         }
 
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .dynamic-group {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--bg);
+        }
+
+        .dynamic-group .remove-btn {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            transition: background .2s;
+        }
+
+        .dynamic-group .remove-btn:hover {
+            background: #b91c1c;
+        }
+
+        .add-btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: background .2s;
+        }
+
+        .add-btn:hover {
+            background: var(--accent);
+        }
+
         .form-actions {
             display: flex;
             gap: 1rem;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
         }
 
         .btn-submit {
@@ -146,7 +185,6 @@
             font-weight: 500;
             cursor: pointer;
             transition: background .2s;
-            border-radius: 0;
         }
 
         .btn-submit:hover {
@@ -172,49 +210,26 @@
             color: var(--text);
         }
 
-        /* ============================== */
-        /* RESPONSIVE */
-        /* ============================== */
         @media (max-width: 768px) {
             .container {
                 padding: 0 1.2rem;
             }
-
             .page-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
             }
-
             .page-header h1 {
                 font-size: 1.6rem;
             }
-
             .form-actions {
                 flex-direction: column;
             }
-
             .btn-submit,
             .btn-cancel {
                 width: 100%;
                 text-align: center;
                 padding: 0.8rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 0.8rem;
-            }
-
-            .page-header h1 {
-                font-size: 1.3rem;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 0.5rem 0.7rem;
-                font-size: 0.9rem;
             }
         }
     </style>
@@ -223,9 +238,7 @@
 
     <div class="container">
 
-        <!-- ============================== -->
         <!-- HEADER -->
-        <!-- ============================== -->
         <header class="page-header">
             <h1>افزودن محصول جدید</h1>
             <div class="links">
@@ -234,51 +247,105 @@
             </div>
         </header>
 
-        <!-- ============================== -->
         <!-- ERROR MESSAGE -->
-        <!-- ============================== -->
         <% if (error) { %>
             <div class="error-message"><%= error %></div>
         <% } %>
 
-        <!-- ============================== -->
         <!-- FORM -->
-        <!-- ============================== -->
-        <form action="/admin/products/add" method="POST">
+        <form action="/admin/products/add" method="POST" id="productForm">
+            <div class="form-card">
 
-            <div class="form-group">
-                <label for="title">عنوان</label>
-                <input type="text" id="title" name="title" maxlength="200" placeholder="عنوان محصول را وارد کنید..." required>
+                <!-- اطلاعات پایه -->
+                <div class="form-group">
+                    <label for="title">عنوان <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="title" name="title" maxlength="200" placeholder="عنوان محصول را وارد کنید..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subtitle">زیرعنوان</label>
+                    <input type="text" id="subtitle" name="subtitle" maxlength="500" placeholder="زیرعنوان محصول را وارد کنید...">
+                </div>
+
+                <div class="form-group">
+                    <label for="price">قیمت</label>
+                    <input type="text" id="price" name="price" maxlength="50" placeholder="مثال: ۱,۰۰۰,۰۰۰ تومان">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">توضیحات</label>
+                    <textarea id="description" name="description" rows="5" maxlength="5000" placeholder="توضیحات محصول را وارد کنید..."></textarea>
+                </div>
+
+                <!-- ============================== -->
+                <!-- تصاویر (داینامیک) -->
+                <!-- ============================== -->
+                <div class="section-title">🖼️ تصاویر</div>
+                <div id="images-container">
+                    <div class="dynamic-group image-item">
+                        <div class="form-group">
+                            <label>آدرس تصویر</label>
+                            <input type="url" name="image[]" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <button type="button" class="remove-btn" data-container="images-container">حذف تصویر</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" id="addImageBtn">➕ افزودن تصویر</button>
+
+                <!-- ============================== -->
+                <!-- فروشگاه‌ها (داینامیک) -->
+                <!-- ============================== -->
+                <div class="section-title" style="margin-top:2rem;">🏪 فروشگاه‌ها</div>
+                <div id="shops-container">
+                    <div class="dynamic-group shop-item">
+                        <div class="form-group">
+                            <label>نام فروشگاه</label>
+                            <input type="text" name="shop_name[]" placeholder="مثال: دیجیکالا">
+                        </div>
+                        <div class="form-group">
+                            <label>لینک فروشگاه</label>
+                            <input type="url" name="shop_link[]" placeholder="https://example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>آدرس تصویر فروشگاه</label>
+                            <input type="url" name="shop_image[]" placeholder="https://example.com/logo.png">
+                        </div>
+                        <button type="button" class="remove-btn" data-container="shops-container">حذف فروشگاه</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" id="addShopBtn">➕ افزودن فروشگاه</button>
+
+                <!-- ============================== -->
+                <!-- ویژگی‌ها (داینامیک) -->
+                <!-- ============================== -->
+                <div class="section-title" style="margin-top:2rem;">📋 ویژگی‌ها</div>
+                <div id="properties-container">
+                    <div class="dynamic-group property-item">
+                        <div class="form-group">
+                            <label>عنوان ویژگی</label>
+                            <input type="text" name="prop_key[]" placeholder="مثال: زمان بازی">
+                        </div>
+                        <div class="form-group">
+                            <label>مقدار ویژگی</label>
+                            <input type="text" name="prop_value[]" placeholder="مثال: 15 دقیقه">
+                        </div>
+                        <button type="button" class="remove-btn" data-container="properties-container">حذف ویژگی</button>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" id="addPropertyBtn">➕ افزودن ویژگی</button>
+
+                <!-- دکمه‌ها -->
+                <div class="form-actions" style="margin-top:2rem;">
+                    <button type="submit" class="btn-submit">ذخیره</button>
+                    <a href="/admin/products" class="btn-cancel">انصراف</a>
+                </div>
+
             </div>
-
-            <div class="form-group">
-                <label for="subtitle">زیرعنوان</label>
-                <input type="text" id="subtitle" name="subtitle" maxlength="500" placeholder="زیرعنوان محصول را وارد کنید...">
-            </div>
-
-            <div class="form-group">
-                <label for="price">قیمت</label>
-                <input type="text" id="price" name="price" maxlength="50" placeholder="مثال: ۱,۰۰۰,۰۰۰ تومان">
-            </div>
-
-            <div class="form-group">
-                <label for="description">توضیحات</label>
-                <textarea id="description" name="description" rows="5" maxlength="5000" placeholder="توضیحات محصول را وارد کنید..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="image">آدرس تصویر</label>
-                <input type="url" id="image" name="image" maxlength="500" placeholder="https://example.com/image.jpg">
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-submit">ذخیره</button>
-                <a href="/admin/products" class="btn-cancel">انصراف</a>
-            </div>
-
         </form>
 
     </div>
+
+    <script src="/public/adminProductsAdd.js" defer></script>
 
 </body>
 </html>

@@ -195,19 +195,50 @@
     "unique_code": "PRD-ABC129-XYZ"
   },
   "8": {
-    "title": "111111111",
-    "subtitle": "1111111111",
-    "price": "111111111",
-    "description": "11111111111",
-    "image": "111111111",
-    "unique_code": "PRD-MQRZXM5L-UL6E"
-  },
-  "9": {
-    "title": "1222222222",
+    "title": "1",
     "subtitle": "1",
     "price": "1",
-    "description": "1",
-    "image": "1",
-    "unique_code": "PRD-MQS94TJV-QAXO"
+    "description": "11",
+    "image": [],
+    "shops": [],
+    "properties": {},
+    "unique_code": "PRD-MQWBBQ4P-SAMR"
+  },
+  "9": {
+    "title": "11",
+    "subtitle": "11",
+    "price": "11",
+    "description": "11",
+    "image": [],
+    "shops": [],
+    "properties": {},
+    "unique_code": "PRD-MQWBIJXT-FS2G"
+  },
+  "10": {
+    "title": "123212",
+    "subtitle": "123123",
+    "price": "123123",
+    "description": "123123",
+    "image": [
+      "http://127.0.0.1:3009/admin/products/add",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRArrXM2909-PxGCoFucqTcbkmTM6Eu2bl49bcQH3yxMQ&s=10"
+    ],
+    "shops": [
+      {
+        "name": "123123",
+        "link": "https://chat.deepseek.com/",
+        "image": "https://chat.deepseek.com/"
+      },
+      {
+        "name": "ضصث",
+        "link": "https://www.digikala.com/",
+        "image": "https://www.digikala.com/"
+      }
+    ],
+    "properties": {
+      "34شیسی": "شیسسش",
+      "سشییشس": "یسسییشس"
+    },
+    "unique_code": "PRD-MQWBL3CY-3F3N"
   }
 }

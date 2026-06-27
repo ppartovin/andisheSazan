@@ -146,49 +146,84 @@ router.get('/add', checkToken, async (req, res) => {
     }
 });
 
-// Add new product
+//add new product
 router.post('/add', checkToken, async (req, res) => {
     try {
-        const title = escapeHtml(req.body.title.trim());
-        const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
-        const price = escapeHtml(req.body.price?.trim() || '');
-        const description = escapeHtml(req.body.description?.trim() || '');
-        const image = escapeHtml(req.body.image?.trim() || '');
+        console.log('📦 Received form data:', req.body);
 
+        const { title, subtitle, price, description } = req.body;
+
+        // اعتبارسنجی عنوان
         if (!title || title.trim() === '') {
-            return res.render('adminPanel/adminProductsAdd', { 
-                error: 'عنوان محصول الزامی است' 
-            });
+            return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
         }
 
         if (title.length > 200) {
-            return res.render('adminPanel/adminProductsAdd', { 
-                error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' 
-            });
+            return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' });
         }
 
-        if (price && !isValidPrice(price)) {
-            return res.render('adminPanel/adminProductsAdd', {
-                error: 'قیمت باید یک عدد معتبر باشد'
-            });
+        // ==============================
+        // پردازش تصاویر (آرایه)
+        // ==============================
+        const imageArray = req.body.image || [];
+        // حذف مقادیر خالی و trim
+        const cleanedImages = imageArray.filter(img => img && img.trim()).map(img => img.trim());
+
+        // ==============================
+        // پردازش فروشگاه‌ها
+        // ==============================
+        const shops = [];
+        const shopNames = req.body.shop_name || [];
+        const shopLinks = req.body.shop_link || [];
+        const shopImages = req.body.shop_image || [];
+
+        for (let i = 0; i < shopNames.length; i++) {
+            if (shopNames[i] && shopNames[i].trim()) {
+                shops.push({
+                    name: shopNames[i].trim().replace(/[،,]\s*$/, ''), // حذف کاما اضافی
+                    link: shopLinks[i]?.trim().replace(/[،,]\s*$/, '') || '',
+                    image: shopImages[i]?.trim().replace(/[،,]\s*$/, '') || ''
+                });
+            }
         }
 
+        // ==============================
+        // پردازش ویژگی‌ها
+        // ==============================
+        const properties = {};
+        const propKeys = req.body.prop_key || [];
+        const propValues = req.body.prop_value || [];
+
+        for (let i = 0; i < propKeys.length; i++) {
+            if (propKeys[i] && propKeys[i].trim()) {
+                properties[propKeys[i].trim()] = propValues[i]?.trim() || '';
+            }
+        }
+
+        // ==============================
+        // خواندن فایل و ذخیره
+        // ==============================
         const products = await readJsonFile(PRODUCTS_PATH);
 
         const ids = Object.keys(products).map(Number);
         const nextId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
 
-        // تولید unique_code
         const uniqueCode = generateUniqueCode();
 
-        products[nextId] = {
+        const newProduct = {
             title: title.trim(),
             subtitle: subtitle?.trim() || '',
             price: price?.trim() || '',
             description: description?.trim() || '',
-            image: image?.trim() || '',
+            image: cleanedImages,
+            shops: shops,
+            properties: properties,
             unique_code: uniqueCode
         };
+
+        console.log('📦 New product:', newProduct);
+
+        products[nextId] = newProduct;
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
@@ -200,6 +235,8 @@ router.post('/add', checkToken, async (req, res) => {
         res.status(500).render('err', { message: 'خطا در افزودن محصول' });
     }
 });
+
+
 
 // Show edit form
 router.get('/edit/:id', checkToken, async (req, res) => {
