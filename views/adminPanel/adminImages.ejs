@@ -7,6 +7,11 @@
 
     <link rel="stylesheet" href="/public/css/fonts.css">
 
+    <!-- ============================== -->
+    <!-- SCRIPTS -->
+    <!-- ============================== -->
+    <script src="/public/adminImages.js" defer></script>
+
     <style>
 
         :root {
@@ -146,6 +151,7 @@
             margin-bottom: 0.5rem;
             text-decoration: none;
             transition: color .2s;
+            cursor: pointer;
         }
 
         .image-card .filelink:hover {
@@ -259,7 +265,7 @@
                     <div class="image-card">
                         <img src="<%= img.link %>" alt="<%= img.name %>">
                         <div class="filename"><%= img.name %></div>
-                        <a href="<%= img.link %>" class="filelink" target="_blank" rel="noopener noreferrer"><%= img.link %></a>
+                        <a href="javascript:void(0)" class="filelink copy-link" data-link="<%= img.link %>"><%= img.link %></a>
                         <form action="/admin/images/delete/<%= encodeURIComponent(img.name) %>" method="POST">
                             <button type="submit" class="delete-btn">حذف</button>
                         </form>

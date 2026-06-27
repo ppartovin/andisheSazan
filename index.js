@@ -39,7 +39,10 @@ app.use(config.limiterPer30Minutes);
 
 app.set('etag', 'strong');
 app.set('view engine', 'ejs');
-app.use('/public', express.static('public'));
+app.use('/public', express.static('public',{
+    maxAge: 60 * 60 * 1000, // 1 ساعت
+    immutable: true // به مرورگر بگو این فایل‌ها تغییر نمی‌کنند
+}));
 
 // ==============================
 // VALIDATION MIDDLEWARE
@@ -113,14 +116,22 @@ app.get('/index/:lang', async (req, res) => {
 
         const showcaseCodes = indexConfig.top_products || [];
         const topProducts = [];
-        const productsArray = Object.values(allProducts);
 
+        // پیدا کردن محصولات با id
         showcaseCodes.forEach(code => {
-            const product = productsArray.find(p => p.unique_code === code);
-            if (product) topProducts.push(product);
+            // پیدا کردن کلید (id) برای هر unique_code
+            const entry = Object.entries(allProducts).find(([id, product]) => product.unique_code === code);
+            if (entry) {
+                const [id, product] = entry;
+                topProducts.push({
+                    id: id,
+                    ...product
+                });
+            }
         });
 
         const finalProducts = topProducts.slice(0, config.TOP_PRODUCTS_MAX);
+        console.log(finalProducts);
         renderPage(res, 'index', req.params.lang, { topProducts: finalProducts });
     } catch (err) {
         console.error('Index page error:', err.message);

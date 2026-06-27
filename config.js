@@ -51,7 +51,7 @@ const jsonDepthVerify = (req, res, buf) => {
 
 const limiterPerMinute = rateLimit({
     windowMs: 1 * 60 * 1000,
-    max: 75,
+    max: 100,
     message: { error: 'Too many requests per minute. Please slow down.' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -63,7 +63,7 @@ const limiterPerMinute = rateLimit({
 
 const limiterPer30Minutes = rateLimit({
     windowMs: 20 * 60 * 1000,
-    max: 375,
+    max: 500,
     message: { error: 'Too many requests per 30 minutes. Please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
