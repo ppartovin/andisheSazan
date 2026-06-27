@@ -38,11 +38,11 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentPage = 1;
     let isLoading = false;
     let hasMore = true;
-    let allProducts = [];           // تمام محصولات لود شده
+    let allProducts = [];
     let searchTerm = '';
 
     // ==============================
-    // RENDER PRODUCTS (بر اساس فیلتر)
+    // RENDER PRODUCTS
     // ==============================
 
     function renderProducts(products) {
@@ -56,6 +56,24 @@ document.addEventListener("DOMContentLoaded", function() {
             const article = document.createElement('article');
             article.className = 'product-item';
 
+            // تصویر محصول
+            const img = document.createElement('img');
+            if (Array.isArray(product.image) && product.image.length > 0) {
+                img.src = product.image[0];
+            } else if (typeof product.image === 'string' && product.image) {
+                img.src = product.image;
+            } else {
+                img.src = '/default.jpg';
+            }
+            img.alt = product.title || 'محصول';
+            img.style.width = '100%';
+            img.style.height = '180px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '4px';
+            img.style.marginBottom = '10px';
+            img.style.backgroundColor = '#f5f3ef';
+            article.appendChild(img);
+
             const title = document.createElement('h3');
             title.textContent = product.title || 'بدون عنوان';
             article.appendChild(title);
@@ -68,16 +86,10 @@ document.addEventListener("DOMContentLoaded", function() {
             price.textContent = product.price || '';
             article.appendChild(price);
 
-            const br = document.createElement('br');
-            article.appendChild(br);
-
             const link = document.createElement('a');
             link.href = isValidUrl(product.link) ? product.link : '#';
             link.textContent = 'مشاهده';
             article.appendChild(link);
-
-            const hr = document.createElement('hr');
-            article.appendChild(hr);
 
             container.appendChild(article);
         });
@@ -117,10 +129,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = await response.json();
 
             if (data.products && data.products.length > 0) {
-                // اضافه کردن محصولات جدید به آرایه کلی
                 allProducts = allProducts.concat(data.products);
 
-                // رندر بر اساس وضعیت جستجو
                 if (!searchTerm.trim()) {
                     renderProducts(allProducts);
                 } else {
@@ -164,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // ==============================
-    // INTERSECTION OBSERVER - Infinite Scroll
+    // INTERSECTION OBSERVER
     // ==============================
 
     const observer = new IntersectionObserver((entries) => {

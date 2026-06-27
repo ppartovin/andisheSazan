@@ -2,6 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خرید عمده و سازمانی</title>
 
     <style>
@@ -115,11 +116,11 @@
         }
 
         /* ============================== */
-        /* CONTACT INFO */
+        /* CONTACT INFO (۳ ستونه) */
         /* ============================== */
         .contact-info {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
             margin-top: 0.5rem;
         }
@@ -146,10 +147,8 @@
         }
 
         .contact-item span {
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 1.05rem;
-            direction: ltr;
+            color: var(--text-light);
+            font-size: 0.95rem;
         }
 
         /* ============================== */
@@ -159,17 +158,14 @@
             main {
                 padding: 0 2rem;
             }
-
             main h1 {
                 font-size: 2.2rem;
                 margin-top: 3rem;
             }
-
             ul,
             ol {
                 grid-template-columns: 1fr;
             }
-
             .contact-info {
                 grid-template-columns: 1fr 1fr;
             }
@@ -179,37 +175,31 @@
             main {
                 padding: 0 1.2rem;
             }
-
             main h1 {
                 font-size: 1.8rem;
                 margin-top: 2rem;
             }
-
             main>p {
                 font-size: 1rem;
             }
-
             section h2 {
                 font-size: 1.4rem;
             }
-
             ul li,
             ol li {
                 padding: 0.8rem 1rem;
                 font-size: 0.9rem;
             }
-
             .contact-info {
                 grid-template-columns: 1fr;
             }
-
             .contact-item {
                 padding: 1rem 1rem;
             }
         }
     </style>
-</head>
 
+</head>
 <body>
 
     <!-- ============================== -->
@@ -272,7 +262,7 @@
         <!-- SECTION 4: Contact Information -->
         <!-- ============================== -->
         <section>
-            <h2>ارتباط مستقیم با واحد عمده</h2>
+            <h2>اطلاعات تماس مستقیم</h2>
             <div class="contact-info">
                 <div class="contact-item">
                     <strong>شماره مستقیم واحد فروش عمده:</strong>
@@ -281,6 +271,10 @@
                 <div class="contact-item">
                     <strong>واتس‌اپ / تلگرام واحد فروش:</strong>
                     <span>+98 900 000 0000</span>
+                </div>
+                <div class="contact-item">
+                    <strong>آدرس دفتر مرکزی</strong>
+                    <span>تهران، ایران</span>
                 </div>
             </div>
         </section>

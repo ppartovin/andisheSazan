@@ -96,46 +96,6 @@
         }
 
         /* ============================== */
-        /* ASIDE / SIDEBAR */
-        /* ============================== */
-        aside {
-            background: var(--bg-warm);
-            border: 1px solid var(--border);
-            padding: 2rem 2rem 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        aside h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        aside ul {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-        }
-
-        aside ul li {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            padding: 0.4rem 1.2rem;
-            font-size: 0.9rem;
-            color: var(--text);
-            cursor: pointer;
-            transition: background .2s, color .2s;
-        }
-
-        aside ul li:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* ============================== */
         /* PRODUCT LIST CONTAINER */
         /* ============================== */
         #product-list-container {
@@ -151,6 +111,9 @@
             background: var(--bg);
             transition: transform .2s, box-shadow .2s;
             padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .product-item:hover {
@@ -169,6 +132,7 @@
             font-size: 0.9rem;
             color: var(--text-light);
             margin-bottom: 0.5rem;
+            flex: 1;
         }
 
         .product-item span {
@@ -191,16 +155,12 @@
             text-decoration: none;
             cursor: pointer;
             transition: background .2s;
+            margin-top: auto;
+            align-self: flex-start;
         }
 
         .product-item a:hover {
             background: var(--accent);
-        }
-
-        .product-item hr {
-            border: none;
-            border-top: 1px solid var(--border);
-            margin-top: 0.8rem;
         }
 
         /* ============================== */
@@ -256,16 +216,6 @@
                 width: 100%;
                 padding: 0.8rem;
             }
-
-            aside ul {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            aside ul li {
-                text-align: center;
-                padding: 0.6rem;
-            }
         }
     </style>
 
@@ -297,18 +247,6 @@
             <input type="text" id="searchInput" placeholder="جستجو در محصولات..." />
             <button id="searchBtn">جستجو</button>
         </div>
-
-        <!-- ============================== -->
-        <!-- SIDEBAR: Filters Section -->
-        <!-- ============================== -->
-        <aside>
-            <h2>فیلترها</h2>
-            <ul>
-                <li>دسته‌بندی ۱</li>
-                <li>دسته‌بندی ۲</li>
-                <li>دسته‌بندی ۳</li>
-            </ul>
-        </aside>
 
         <!-- ============================== -->
         <!-- PRODUCT LIST CONTAINER -->
