@@ -13,7 +13,6 @@ if (!SECRET_KEY) {
 }
 
 const IMAGES_DIR = path.join(__dirname, '..', 'public','images');
-const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:3009';
 const IMAGES_PATH = '/public/images';
 
 (async () => {
@@ -74,7 +73,7 @@ const generateRandomName = () => {
 };
 
 const createImageLink = (filename) => {
-    return new URL(path.posix.join(IMAGES_PATH, filename), BASE_URL).href;
+    return path.posix.join(IMAGES_PATH, filename);
 };
 
 // ==============================
@@ -129,7 +128,7 @@ router.get('/', checkToken, async (req, res) => {
         // ساخت لیست آبجکت‌ها
         const images = files.map(file => ({
             name: file,
-            link:  new URL(path.posix.join(IMAGES_PATH, file), BASE_URL).href
+            link: path.posix.join(IMAGES_PATH, file)
         }));
 
         res.render('adminPanel/adminImages', { images });

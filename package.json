@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "start /B node index.js && timeout /T 3 /NOBREAK >nul && start http://localhost:3009/index/fa",
+    "start:en": "start /B node index.js && timeout /T 3 /NOBREAK >nul && start http://localhost:3009/index/en",
     "structure": "node scripts/showStructure.js",
     "createAdmin": "node scripts/createAdmin.js"
   },
