@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work With Us</title>
+
+    <link rel="stylesheet" href="/public/css/fonts.css">
+
+    <style>
+
+        :root {
+            --primary: #1F1F1F;
+            --secondary: #3A3A3A;
+            --accent: #A0845C;
+            --accent-light: #C4A97D;
+            --bg: #FAFAF8;
+            --bg-warm: #F5F3EF;
+            --border: #E8E6E1;
+            --text: #2D2D2D;
+            --text-light: #787878;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ============================== */
+        /* MAIN */
+        /* ============================== */
+        main {
+            padding: 0 5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        main h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.2;
+            margin-top: 4rem;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        main>p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin-bottom: 3rem;
+        }
+
+        /* ============================== */
+        /* SECTION */
+        /* ============================== */
+        section {
+            margin-bottom: 3.5rem;
+        }
+
+        section h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        /* ============================== */
+        /* LISTS */
+        /* ============================== */
+        ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        ul li {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: transform .2s, box-shadow .2s;
+            border-radius: 0;
+        }
+
+        ul li:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .04);
+        }
+
+        /* ============================== */
+        /* CONTACT INFO */
+        /* ============================== */
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .contact-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1.5rem 1.5rem;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .contact-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .04);
+        }
+
+        .contact-item strong {
+            display: block;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .contact-item span {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* ============================== */
+        /* RESPONSIVE */
+        /* ============================== */
+        @media (max-width: 992px) {
+            main {
+                padding: 0 2rem;
+            }
+            main h1 {
+                font-size: 2.2rem;
+                margin-top: 3rem;
+            }
+            .contact-info {
+                grid-template-columns: 1fr 1fr;
+            }
+            ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 0 1.2rem;
+            }
+            main h1 {
+                font-size: 1.8rem;
+                margin-top: 2rem;
+            }
+            main>p {
+                font-size: 1rem;
+            }
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+            section h2 {
+                font-size: 1.4rem;
+            }
+            ul li {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            .contact-item {
+                padding: 1rem 1rem;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/headerEn.ejs') %>
+
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
+
+        <!-- Page title -->
+        <h1>Work With Us</h1>
+
+        <!-- Introduction paragraph -->
+        <p>
+            We are open to collaboration proposals, project outsourcing, and partnership agreements in our areas of expertise. Here you can learn about how we work and the benefits of partnering with us.
+        </p>
+
+        <!-- ============================== -->
+        <!-- SECTION 1: Benefits -->
+        <!-- ============================== -->
+        <section>
+            <h2>Benefits of Outsourcing & Working With Us</h2>
+            <ul>
+                <li>Quality guarantee and on-time project delivery</li>
+                <li>Access to a skilled and experienced team</li>
+                <li>Technical support and consultation throughout the contract</li>
+                <li>Transparency in processes and regular reporting</li>
+            </ul>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION 2: Process & Conditions -->
+        <!-- ============================== -->
+        <section>
+            <h2>Process & Contract Conditions</h2>
+            <ul>
+                <li>Initial project needs assessment and free consultation</li>
+                <li>Transparent technical and financial proposal</li>
+                <li>Official contract signing and execution phase planning</li>
+                <li>Commitment to information confidentiality (NDA)</li>
+            </ul>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION 3: Contact Information -->
+        <!-- ============================== -->
+        <section>
+            <h2>Direct Contact Information</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <strong>Business Unit Email</strong>
+                    <span>partners@example.com</span>
+                </div>
+                <div class="contact-item">
+                    <strong>Contracts Department Phone</strong>
+                    <span>+98 900 000 0000</span>
+                </div>
+                <div class="contact-item">
+                    <strong>Head Office Address</strong>
+                    <span>Tehran, Iran</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footerEn.ejs') %>
+
+</body>
+</html>

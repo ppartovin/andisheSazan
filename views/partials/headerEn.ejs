@@ -1,0 +1,156 @@
+<!-- ============================== -->
+<!-- HEADER STYLES -->
+<!-- ============================== -->
+<link rel="stylesheet" href="/public/css/fonts.css">
+<style>
+
+    :root {
+        --primary: #1F1F1F;
+        --secondary: #3A3A3A;
+        --accent: #A0845C;
+        --accent-light: #C4A97D;
+        --bg: #FAFAF8;
+        --bg-warm: #F5F3EF;
+        --border: #E8E6E1;
+        --text: #2D2D2D;
+        --text-light: #787878;
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 5rem;
+        background: rgba(250, 250, 248, 0.95);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--primary);
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .logo-box {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-warm);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--text-light);
+    }
+
+    .logo div {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .logo div small {
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: var(--text-light);
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        gap: 2.5rem;
+    }
+
+    nav a {
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 400;
+        font-size: 0.95rem;
+        transition: color .2s;
+        margin: 0;
+    }
+
+    nav a:hover {
+        color: var(--accent);
+    }
+
+    /* ============================== */
+    /* RESPONSIVE */
+    /* ============================== */
+    @media (max-width: 768px) {
+        header {
+            padding: 1rem 2rem;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+        }
+
+        nav {
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        header {
+            padding: 0.8rem 1.2rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .logo {
+            justify-content: center;
+        }
+
+        nav {
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        nav a {
+            font-size: 0.8rem;
+            margin: 0 4px;
+        }
+    }
+</style>
+
+<!-- ============================== -->
+<!-- HEADER -->
+<!-- ============================== -->
+<header>
+
+    <!-- Logo / Brand -->
+    <a href="/index/en" class="logo">
+        <div class="logo-box">
+            <img src="/public/logo.png" alt="Logo" style="width:100%; height:100%; object-fit:contain;">
+        </div>
+        <div>
+            <div>Company Name</div>
+            <small>Site Title</small>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav>
+        <a href="/products/en">Products</a>
+        <a href="/aboutus/en">About Us</a>
+        <a href="/contact/en">Contact Us</a>
+    </nav>
+
+</header>

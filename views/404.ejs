@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحه پیدا نشد - 404</title>
+    <title>صفحه پیدا نشد - Page Not Found - 404</title>
 
     <link rel="stylesheet" href="/public/css/fonts.css">
 
@@ -31,7 +31,7 @@
             font-family: 'Vazirmatn', sans-serif;
             background: var(--bg);
             color: var(--text);
-            line-height: 1.7;
+            line-height: 2;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -41,7 +41,7 @@
         }
 
         .error-container {
-            max-width: 600px;
+            max-width: 700px;
             text-align: center;
             padding: 4rem 3rem;
             background: var(--bg);
@@ -53,29 +53,63 @@
             font-weight: 700;
             color: var(--accent);
             line-height: 1;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
             letter-spacing: -4px;
         }
 
-        .error-icon {
-            font-size: 3rem;
-            display: block;
-            margin-bottom: 1rem;
+        /* ============================== */
+        /* BILINGUAL CONTENT - Center Aligned */
+        /* ============================== */
+        .bilingual-text {
+            margin: 1.5rem 0 2rem;
         }
 
-        h1 {
+        .bilingual-text .en {
+            direction: ltr;
+            text-align: center;
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 0.2rem;
+        }
+
+        .bilingual-text .fa {
+            direction: rtl;
+            text-align: center;
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 0.2rem;
+        }
+
+        /* ============================== */
+        /* HEADING (bilingual) */
+        /* ============================== */
+        .bilingual-heading {
+            margin: 1rem 0 1.5rem;
+        }
+
+        .bilingual-heading .en {
+            direction: ltr;
+            text-align: center;
+            display: block;
             font-size: 1.8rem;
             font-weight: 600;
             color: var(--primary);
-            margin-bottom: 0.8rem;
         }
 
-        p {
-            font-size: 1.05rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
+        .bilingual-heading .fa {
+            direction: rtl;
+            text-align: center;
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
         }
 
+        /* ============================== */
+        /* BUTTON */
+        /* ============================== */
         .btn-home {
             display: inline-block;
             background: var(--primary);
@@ -87,10 +121,24 @@
             font-size: 0.95rem;
             text-decoration: none;
             transition: background .2s;
+            margin-top: 1rem;
         }
 
         .btn-home:hover {
             background: var(--accent);
+        }
+
+        .btn-home .en {
+            display: inline;
+        }
+
+        .btn-home .fa {
+            display: inline;
+        }
+
+        .btn-home .divider {
+            color: rgba(255,255,255,0.4);
+            margin: 0 0.5rem;
         }
 
         /* ============================== */
@@ -102,24 +150,42 @@
             }
 
             .error-container {
-                padding: 2.5rem 1.5rem;
+                padding: 2rem 1.2rem;
             }
 
             .error-code {
                 font-size: 5rem;
             }
 
-            h1 {
-                font-size: 1.4rem;
+            .bilingual-heading .en,
+            .bilingual-heading .fa {
+                font-size: 1.3rem;
             }
 
-            p {
+            .bilingual-text .en,
+            .bilingual-text .fa {
                 font-size: 0.95rem;
             }
 
             .btn-home {
-                padding: 0.6rem 1.8rem;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
+                padding: 0.6rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .error-code {
+                font-size: 3.5rem;
+            }
+
+            .bilingual-heading .en,
+            .bilingual-heading .fa {
+                font-size: 1.1rem;
+            }
+
+            .bilingual-text .en,
+            .bilingual-text .fa {
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -131,10 +197,35 @@
     <!-- ERROR CONTENT -->
     <!-- ============================== -->
     <div class="error-container">
-        <div class="error-code">۴۰۴</div>
-        <h1>صفحه پیدا نشد</h1>
-        <p>متأسفانه صفحه‌ای که به دنبال آن بودید پیدا نشد.</p>
-        <a href="/index" class="btn-home">بازگشت به صفحه اصلی</a>
+
+        <!-- Error code -->
+        <div class="error-code">404</div>
+
+        <!-- ============================== -->
+        <!-- BILINGUAL HEADING -->
+        <!-- ============================== -->
+        <div class="bilingual-heading">
+            <span class="en">Page Not Found</span>
+            <span class="fa">صفحه پیدا نشد</span>
+        </div>
+
+        <!-- ============================== -->
+        <!-- BILINGUAL TEXT - PARAGRAPH 1 -->
+        <!-- ============================== -->
+        <div class="bilingual-text">
+            <span class="en">Sorry, the page you were looking for could not be found.</span>
+            <span class="fa">متأسفانه صفحه‌ای که به دنبال آن بودید پیدا نشد.</span>
+        </div>
+        
+        <!-- ============================== -->
+        <!-- RETURN BUTTON (bilingual) -->
+        <!-- ============================== -->
+        <a href="/index" class="btn-home">
+            <span class="en">Back to Homepage</span>
+            <span class="divider">|</span>
+            <span class="fa">بازگشت به صفحه اصلی</span>
+        </a>
+
     </div>
 
 </body>

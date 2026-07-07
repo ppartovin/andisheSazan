@@ -1,0 +1,213 @@
+<!-- ============================== -->
+<!-- FOOTER STYLES -->
+<!-- ============================== -->
+<link rel="stylesheet" href="/public/css/fonts.css">
+<style>
+
+    :root {
+        --primary: #1F1F1F;
+        --secondary: #3A3A3A;
+        --accent: #A0845C;
+        --accent-light: #C4A97D;
+        --bg: #FAFAF8;
+        --bg-warm: #F5F3EF;
+        --border: #E8E6E1;
+        --text: #2D2D2D;
+        --text-light: #787878;
+    }
+
+    footer {
+        background: var(--bg-warm);
+        border-top: 1px solid var(--border);
+        padding: 3rem 5rem 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .footer-sections {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 3rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer-col {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .footer-col div {
+        font-weight: 600;
+        color: var(--primary);
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .footer-col a {
+        text-decoration: none;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        transition: color .2s;
+    }
+
+    .footer-col a:hover {
+        color: var(--accent);
+    }
+
+    .social-links {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 1rem;
+        justify-content: center;
+    }
+
+    .social-links a {
+        display: inline-block;
+        transition: transform .2s;
+    }
+
+    .social-links a:hover {
+        transform: translateY(-3px);
+    }
+
+    .social-links img {
+        width: 60px;
+        height: 60px;
+        display: block;
+        /* border: 1px solid var(--border); */
+        border-radius: 4px;
+        /* padding: 4px; */
+        background: var(--bg);
+    }
+
+    .footer-copyright {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-light);
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ============================== */
+    /* RESPONSIVE */
+    /* ============================== */
+    @media (max-width: 768px) {
+        footer {
+            padding: 2rem 2rem 1rem;
+        }
+
+        .footer-sections {
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .social-links {
+            gap: 0.6rem;
+        }
+
+        .social-links img {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        footer {
+            padding: 1.5rem 1.2rem 1rem;
+        }
+
+        .footer-sections {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .social-links {
+            justify-content: center;
+        }
+
+        .footer-copyright {
+            font-size: 0.75rem;
+        }
+    }
+</style>
+
+<!-- ============================== -->
+<!-- FOOTER -->
+<!-- ============================== -->
+<footer>
+
+    <!-- ============================== -->
+    <!-- FOOTER SECTIONS -->
+    <!-- ============================== -->
+    <div class="footer-sections">
+
+        <!-- Column 1: About -->
+        <div class="footer-col">
+            <div>About</div>
+            <a href="/contact/en">Contact Us</a>
+            <a href="/aboutus/en">About Us</a>
+            <a href="/team/en">Our Team</a>
+        </div>
+
+        <!-- Column 2: Collaboration -->
+        <div class="footer-col">
+            <div>Collaboration</div>
+            <a href="/partnership/en">Work With Us</a>
+            <a href="/wholesale/en">Wholesale</a>
+            <a href="/customorder/en">Custom Order</a>
+        </div>
+
+        <!-- Column 3: Products -->
+        <div class="footer-col">
+            <div>Products</div>
+            <a href="/products/en">Products Page</a>
+        </div>
+
+        <!-- Column 4: More -->
+        <div class="footer-col">
+            <div>More</div>
+            <a href="/faq/en">FAQ</a>
+            <a href="/blogs/en">Blog</a>
+        </div>
+
+    </div>
+
+    <!-- ============================== -->
+    <!-- SOCIAL LINKS -->
+    <!-- ============================== -->
+    <div style="text-align:center; color:var(--text-light); font-weight:500; margin-top:1.5rem;">
+        Contact & Social Media
+    </div>
+
+    <div class="social-links">
+        <a href="mailto:info@example.com">
+            <img src="/public/email.png" alt="email">
+        </a>
+        <a href="tel:+989000000000">
+            <img src="/public/telephone.png" alt="phone">
+        </a>
+        <a href="https://instagram.com/yourpage" target="_blank" rel="noopener noreferrer">
+            <img src="/public/instagram.png" alt="instagram">
+        </a>
+        <a href="https://linkedin.com/company/yourcompany" target="_blank" rel="noopener noreferrer">
+            <img src="/public/linkedin.png" alt="linkedin">
+        </a>
+        <a href="https://t.me/yourchannel" target="_blank" rel="noopener noreferrer">
+            <img src="/public/telegram.png" alt="telegram">
+        </a>
+    </div>
+
+    <!-- ============================== -->
+    <!-- COPYRIGHT -->
+    <!-- ============================== -->
+    <div class="footer-copyright">
+        © All rights reserved
+    </div>
+
+</footer>

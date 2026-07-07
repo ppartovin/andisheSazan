@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خطای سرور</title>
+    <title>خطای سرور / Server Error</title>
 
     <link rel="stylesheet" href="/public/css/fonts.css">
 
@@ -41,7 +41,7 @@
         }
 
         .error-container {
-            max-width: 600px;
+            max-width: 700px;
             text-align: center;
             padding: 4rem 3rem;
             background: var(--bg);
@@ -54,19 +54,54 @@
             margin-bottom: 1rem;
         }
 
-        h1 {
+        /* ============================== */
+        /* BILINGUAL CONTENT */
+        /* ============================== */
+        .bilingual-text {
+            margin: 1.5rem 0 2rem;
+        }
+
+        .bilingual-text .en {
+            direction: ltr;
+            text-align: center;
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 0.2rem;
+        }
+
+        .bilingual-text .fa {
+            direction: rtl;
+            text-align: center;
+            display: block;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 0.2rem;
+        }
+
+        .bilingual-heading .en {
+            direction: ltr;
+            text-align: center;
+            display: block;
             font-size: 2.5rem;
             font-weight: 600;
             color: var(--primary);
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.2rem;
         }
 
-        p {
-            font-size: 1.05rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
+        .bilingual-heading .fa {
+            direction: rtl;
+            text-align: center;
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
         }
 
+        /* ============================== */
+        /* BUTTON */
+        /* ============================== */
         .btn-home {
             display: inline-block;
             background: var(--primary);
@@ -78,10 +113,24 @@
             font-size: 0.95rem;
             text-decoration: none;
             transition: background .2s;
+            margin-top: 1rem;
         }
 
         .btn-home:hover {
             background: var(--accent);
+        }
+
+        .btn-home .en {
+            display: inline;
+        }
+
+        .btn-home .fa {
+            display: inline;
+        }
+
+        .btn-home .divider {
+            color: rgba(255,255,255,0.4);
+            margin: 0 0.5rem;
         }
 
         /* ============================== */
@@ -96,17 +145,31 @@
                 padding: 2.5rem 1.5rem;
             }
 
-            h1 {
+            .bilingual-heading .en,
+            .bilingual-heading .fa {
                 font-size: 1.8rem;
             }
 
-            p {
+            .bilingual-text .en,
+            .bilingual-text .fa {
                 font-size: 0.95rem;
             }
 
             .btn-home {
                 padding: 0.6rem 1.8rem;
                 font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .bilingual-heading .en,
+            .bilingual-heading .fa {
+                font-size: 1.4rem;
+            }
+
+            .bilingual-text .en,
+            .bilingual-text .fa {
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -119,9 +182,31 @@
     <!-- ============================== -->
     <div class="error-container">
         <span class="error-icon">⚠️</span>
-        <h1>خطای داخلی سرور</h1>
-        <p>در حال حاضر مشکلی در سیستم رخ داده است، لطفاً بعداً تلاش کنید.</p>
-        <a href="/index" class="btn-home">بازگشت به صفحه اصلی</a>
+
+        <!-- ============================== -->
+        <!-- BILINGUAL HEADING -->
+        <!-- ============================== -->
+        <div class="bilingual-heading">
+            <span class="en">Internal Server Error</span>
+            <span class="fa">خطای داخلی سرور</span>
+        </div>
+
+        <!-- ============================== -->
+        <!-- BILINGUAL TEXT -->
+        <!-- ============================== -->
+        <div class="bilingual-text">
+            <span class="en">Something went wrong on our end. Please try again later.</span>
+            <span class="fa">در حال حاضر مشکلی در سیستم رخ داده است، لطفاً بعداً تلاش کنید.</span>
+        </div>
+
+        <!-- ============================== -->
+        <!-- RETURN BUTTON (bilingual) -->
+        <!-- ============================== -->
+        <a href="/index" class="btn-home">
+            <span class="en">Back to Homepage</span>
+            <span class="divider">|</span>
+            <span class="fa">بازگشت به صفحه اصلی</span>
+        </a>
     </div>
 
 </body>

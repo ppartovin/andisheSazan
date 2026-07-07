@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+
+    <link rel="stylesheet" href="/public/css/fonts.css">
+
+    <style>
+
+        :root {
+            --primary: #1F1F1F;
+            --secondary: #3A3A3A;
+            --accent: #A0845C;
+            --accent-light: #C4A97D;
+            --bg: #FAFAF8;
+            --bg-warm: #F5F3EF;
+            --border: #E8E6E1;
+            --text: #2D2D2D;
+            --text-light: #787878;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ============================== */
+        /* MAIN */
+        /* ============================== */
+        main {
+            padding: 0 5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        main h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.2;
+            margin-top: 4rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        main h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.3rem;
+        }
+
+        main p {
+            font-size: 1.05rem;
+            color: var(--text-light);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ============================== */
+        /* SECTION */
+        /* ============================== */
+        .section {
+            margin-bottom: 3.5rem;
+        }
+
+        .section:last-child {
+            margin-bottom: 4rem;
+        }
+
+        /* ============================== */
+        /* RESPONSIVE */
+        /* ============================== */
+        @media (max-width: 768px) {
+            main {
+                padding: 0 2rem;
+            }
+
+            main h1 {
+                font-size: 2.2rem;
+                margin-top: 3rem;
+            }
+
+            main h2 {
+                font-size: 1.4rem;
+            }
+
+            main p {
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 0 1.2rem;
+            }
+
+            main h1 {
+                font-size: 1.8rem;
+                margin-top: 2rem;
+            }
+
+            main h2 {
+                font-size: 1.2rem;
+            }
+
+            main p {
+                font-size: 0.9rem;
+            }
+
+            .section {
+                margin-bottom: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/headerEn.ejs') %>
+
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
+
+        <!-- ============================== -->
+        <!-- SECTION: About Us -->
+        <!-- ============================== -->
+        <section class="section">
+            <h1>About Us</h1>
+            <p>
+                We are a small team working on the design and production of board games.
+                Our focus is on creating new experiences and turning ideas into real products.
+            </p>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION: What We Build -->
+        <!-- ============================== -->
+        <section class="section">
+            <h2>What We Build</h2>
+            <p>
+                We design and produce board games, game prototypes, and tools for game-centered
+                experiences. Our goal is to create products that are both entertaining and
+                offer a unique experience for players.
+            </p>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION: Why We Do This -->
+        <!-- ============================== -->
+        <section class="section">
+            <h2>Why We Do This</h2>
+            <p>
+                We believe games can bring people together, enhance creativity,
+                and create shared experiences. That's why we strive to turn new
+                ideas into games that are worth experiencing.
+            </p>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION: How We Do It -->
+        <!-- ============================== -->
+        <section class="section">
+            <h2>How We Do It</h2>
+            <p>
+                Our work begins with ideation. Then the rules and mechanics of the game
+                are designed, and prototypes are built. These prototypes are tested and
+                refined until they reach a version ready for production or release.
+            </p>
+        </section>
+
+        <!-- ============================== -->
+        <!-- SECTION: Partnerships -->
+        <!-- ============================== -->
+        <section class="section">
+            <h2>What Partnerships We Accept</h2>
+            <p>
+                We are open to collaborating with game designers, publishers, manufacturers,
+                and organizations looking to develop or produce board games and similar products.
+                Collaboration can take the form of design, prototyping, or developing a new product.
+            </p>
+        </section>
+
+    </main>
+
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footerEn.ejs') %>
+
+</body>
+</html>
