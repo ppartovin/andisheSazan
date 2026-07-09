@@ -21,6 +21,17 @@ function isValidUrl(url) {
 }
 
 // ==============================
+// STATE
+// ==============================
+
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
+let allProducts = [];
+let searchTerm = '';
+const lang = document.documentElement.lang || 'fa';
+
+// ==============================
 // DOM ELEMENTS
 // ==============================
 
@@ -32,14 +43,28 @@ document.addEventListener("DOMContentLoaded", function() {
     const searchBtn = document.getElementById('searchBtn');
 
     // ==============================
-    // STATE
+    // LANGUAGE HELPERS
     // ==============================
 
-    let currentPage = 1;
-    let isLoading = false;
-    let hasMore = true;
-    let allProducts = [];
-    let searchTerm = '';
+    function noProductsText() {
+        return lang === 'en' ? 'No products found.' : 'هیچ محصولی یافت نشد.';
+    }
+
+    function viewProductText() {
+        return lang === 'en' ? 'View' : 'مشاهده';
+    }
+
+    function loadingText() {
+        return lang === 'en' ? 'Loading...' : 'در حال بارگذاری...';
+    }
+
+    function allProductsLoadedText() {
+        return lang === 'en' ? 'All products have been displayed.' : 'تمام محصولات نمایش داده شدند.';
+    }
+
+    function loadingErrorText() {
+        return lang === 'en' ? 'Error loading products' : 'خطا در بارگذاری محصولات';
+    }
 
     // ==============================
     // RENDER PRODUCTS
@@ -48,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function renderProducts(products) {
         container.innerHTML = '';
         if (products.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#888;">هیچ محصولی یافت نشد.</p>';
+            container.innerHTML = `<p style="text-align:center;color:#888;">${noProductsText()}</p>`;
             return;
         }
 
@@ -65,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 img.src = '/default.jpg';
             }
-            img.alt = product.title || 'محصول';
+            img.alt = product.title || (lang === 'en' ? 'Product' : 'محصول');
             img.style.width = '100%';
             img.style.height = '180px';
             img.style.objectFit = 'cover';
@@ -75,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
             article.appendChild(img);
 
             const title = document.createElement('h3');
-            title.textContent = product.title || 'بدون عنوان';
+            title.textContent = product.title || (lang === 'en' ? 'Untitled' : 'بدون عنوان');
             article.appendChild(title);
 
             const subtitle = document.createElement('p');
@@ -88,8 +113,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const link = document.createElement('a');
             link.href = isValidUrl(product.link) ? product.link : '#';
-            link.textContent = 'مشاهده';
-            link.className = 'btn-view'; // ← اضافه کردن کلاس
+            link.textContent = viewProductText();
+            link.className = 'btn-view';
             article.appendChild(link);
 
             container.appendChild(article);
@@ -122,10 +147,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
         isLoading = true;
         anchor.style.display = 'block';
-        anchor.textContent = 'در حال بارگذاری...';
+        anchor.textContent = loadingText();
 
         try {
-            const response = await fetch(`/api/products?page=${currentPage}`);
+            const response = await fetch(`/api/products/${currentPage}/${lang}`);
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
 
@@ -145,11 +170,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         } catch (error) {
             console.error("Error loading products:", error);
-            anchor.textContent = 'خطا در بارگذاری محصولات';
+            anchor.textContent = loadingErrorText();
         } finally {
             isLoading = false;
             if (!hasMore) {
-                anchor.innerHTML = '<p style="text-align:center;color:#888;">تمام محصولات نمایش داده شدند.</p>';
+                anchor.innerHTML = `<p style="text-align:center;color:#888;">${allProductsLoadedText()}</p>`;
             }
         }
     }

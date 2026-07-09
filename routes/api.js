@@ -10,6 +10,8 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PATHS = {
     products: path.join(DATA_DIR, 'products.json'),
+    productsFa: path.join(DATA_DIR, 'productsFa.json'),
+    productsEn: path.join(DATA_DIR, 'productsEn.json'),
     blogs: path.join(DATA_DIR, 'blogs.json'),
     blogsFa: path.join(DATA_DIR, 'blogsFa.json'),
     blogsEn: path.join(DATA_DIR, 'blogsEn.json')
@@ -37,9 +39,9 @@ const readJsonFile = async (filePath) => {
 // ==============================
 
 // API: Products (paginated)
-router.get('/products', async (req, res) => {
+router.get('/products/:page/:lang', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
+        const page = parseInt(req.params.page) || 1;
         if (isNaN(page) || page < 1) {
             return res.status(400).json({ 
                 error: 'Invalid page number', 
@@ -47,7 +49,16 @@ router.get('/products', async (req, res) => {
             });
         }
 
-        const allProducts = Object.values(await readJsonFile(PATHS.products));
+        const lang = req.params.lang;
+
+        // انتخاب فایل بر اساس زبان
+        const productsPaths = {
+            fa: PATHS.productsFa,
+            en: PATHS.productsEn
+        };
+        const productsPath = productsPaths[lang] || productsPaths.fa;
+
+        const allProducts = Object.values(await readJsonFile(productsPath));
         
         if (!allProducts || allProducts.length === 0) {
             return res.status(404).json({ 
@@ -65,7 +76,7 @@ router.get('/products', async (req, res) => {
             .slice(start, end)
             .map((product, index) => ({
                 ...product,
-                link: `/product/${start + index + 1}/fa`
+                link: `/product/${start + index + 1}/${lang}`
             }));
 
         res.json({

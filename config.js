@@ -13,6 +13,8 @@ const rateLimit = require('express-rate-limit');
 const DATA_DIR = path.join(__dirname, 'data');
 const PATHS = {
     products: path.join(DATA_DIR, 'products.json'),
+    productsFa: path.join(DATA_DIR, 'productsFa.json'),
+    productsEn: path.join(DATA_DIR, 'productsEn.json'),
     blogs: path.join(DATA_DIR, 'blogs.json'),
     faqsFa: path.join(DATA_DIR, 'faqsFa.json'),
     faqsEn: path.join(DATA_DIR, 'faqsEn.json'),

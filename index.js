@@ -111,8 +111,16 @@ app.get('/index', (req, res) => res.redirect('/index/fa'));
 // Index page
 app.get('/index/:lang', async (req, res) => {
     try {
+        const lang = req.params.lang;
         const indexConfig = await readJsonFile(config.PATHS.indexData);
-        const allProducts = await readJsonFile(config.PATHS.products);
+
+        // Product file paths based on language
+        const productsPaths = {
+            fa: config.PATHS.productsFa,
+            en: config.PATHS.productsEn
+        };
+        const productsPath = productsPaths[lang] || productsPaths.fa;
+        const allProducts = await readJsonFile(productsPath);
 
         const showcaseCodes = indexConfig.top_products || [];
         const topProducts = [];
@@ -192,17 +200,32 @@ app.get('/product', (req, res) => res.redirect('/products'));
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
 app.get('/product/:id/:lang', validateId, async (req, res) => {
     try {
-        const products = await readJsonFile(config.PATHS.products);
+        const lang = req.params.lang;
+
+        // Product file paths based on language
+        const productsPaths = {
+            fa: config.PATHS.productsFa,
+            en: config.PATHS.productsEn
+        };
+
+        // Select appropriate path, default to Persian if language is invalid
+        const productsPath = productsPaths[lang] || productsPaths.fa;
+
+        const products = await readJsonFile(productsPath);
         const product = products[req.params.id];
 
         if (!product) {
-            return res.status(404).render('404', { message: 'محصول یافت نشد' });
+            const errorMessage = lang === 'fa' ? 'محصول یافت نشد' : 'Product not found';
+            return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'product', req.params.lang, product);
+        renderPage(res, 'product', lang, product);
     } catch (err) {
         console.error('Product error:', err.message);
-        res.status(500).render('err', { message: 'خطا در بارگذاری محصول' });
+        const errorMessage = req.params.lang === 'fa'
+            ? 'خطا در بارگذاری محصول'
+            : 'Error loading product';
+        res.status(500).render('err', { message: errorMessage });
     }
 });
 

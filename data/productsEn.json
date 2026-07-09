@@ -1,0 +1,164 @@
+{
+  "1": {
+    "title": "Abalone Quattro 4-Player Board Game | Abalone Quattro",
+    "subtitle": "Popular Abstract and Strategic Game",
+    "price": "1,000,000 Toman",
+    "description": "Abalone Quattro is the same popular and beloved abstract strategic game Abalone, which in this case can be played with two, three, or four players. The rules are the same as the two-player Abalone game, with the difference that for three or four-player games there are additional rules that are fully explained in the guide. As with the two-player Abalone, decision-making, planning, and predicting future moves are essential to winning. A product of Andishe Sazan Pooya manufacturing group.",
+    "image": [
+      "/public/images/ablon1.jpg",
+      "/public/images/ablon2.jpg",
+      "/public/images/ablon3.jpg",
+      "/public/images/ablon4.jpg",
+      "/public/images/ablon5.jpg"
+    ],
+    "shops": [
+      {
+        "name": "Shazdeh Koochulo",
+        "link": "https://shazdehkoochulo.com",
+        "image": "/public/images/shazdeh_kocholo_shop.png"
+      },
+      {
+        "name": "Digikala",
+        "link": "https://www.digikala.com",
+        "image": "/public/images/digikala_shop.png"
+      },
+      {
+        "name": "Torob",
+        "link": "https://torob.com/",
+        "image": "/public/images/torob.png"
+      }
+    ],
+    "properties": {
+      "Brand": "Andishe Sazan Pooya",
+      "Number of Players": "2 to 4 players",
+      "Age Range": "10 years and up",
+      "Playing Time": "30 minutes",
+      "Skills": "Strategic thinking, Decision-making",
+      "Game Type": "Abstract and Strategic"
+    },
+    "unique_code": "PRD-MQWK1E1B-6FUV"
+  },
+  "2": {
+    "title": "Classic 2-Player Abalone Board Game | Abalone",
+    "subtitle": "Popular Strategic - Abstract Game",
+    "price": "1,000,000 Toman",
+    "description": "The game of Abalone was invented in 1987 by Laurent Levi and Michel Lalet and quickly became one of the most popular and best-selling strategic-abstract games. The rules of this game are very simple, but only by using creative and complex strategies can you overcome clever opponents. In this game, you must use your fingers to push rows of marbles so that your opponent's marbles become isolated. You just need to push six of your opponent's marbles off the board to win the game. This game is suitable for ages 8 and up, two players, and a playing time of 10 to 30 minutes.",
+    "image": [
+      "/public/images/abaolon2_2.jpg",
+      "/public/images/abaolon2_4.jpg",
+      "/public/images/abaolon2_3.jpg",
+      "/public/images/abaolon2_1.jpg",
+      "/public/images/abaolon2_5.jpg",
+      "/public/images/abaolon2_6.jpg"
+    ],
+    "shops": [
+      {
+        "name": "Shazdeh Koochulo",
+        "link": "https://shazdehkoochulo.com",
+        "image": "/public/images/shazdeh_kocholo_shop.png"
+      },
+      {
+        "name": "Digikala",
+        "link": "https://www.digikala.com",
+        "image": "/public/images/digikala_shop.png"
+      },
+      {
+        "name": "Torob",
+        "link": "https://torob.com",
+        "image": "/public/images/torob.png"
+      }
+    ],
+    "properties": {
+      "Brand": "Andishe Sazan Pooya",
+      "Number of Players": "2 players",
+      "Age Range": "8 years and up",
+      "Playing Time": "10 to 30 minutes",
+      "Skills": "Strategic thinking, Planning",
+      "Game Type": "Abstract and Strategic",
+      "Year of Invention": "1987",
+      "Designer": "Laurent Levi and Michel Lalet"
+    },
+    "unique_code": "PRD-MQWKMT53-1UE5"
+  },
+  "3": {
+    "title": "UNO Card Game | UNO",
+    "subtitle": "Exciting Group Card Game",
+    "price": "350,000 Toman",
+    "description": "UNO is an exciting group card game consisting of 52 playing cards and two guide cards, presented in a plastic box suitable for storing the cards. The cards come in four different colors with numbers from one to nine written on them. There are also several special cards that can change the course of the game. Each player is dealt a number of cards and one card is placed face-up in the middle. Players must try to get rid of their cards before others according to the face-up card. This exciting group game is designed for 2 to 10 players and ages 7 and up. Note: In this print run, the red cover on the game box has been removed.",
+    "image": [
+      "/public/images/uno1.png",
+      "/public/images/uno2.png",
+      "/public/images/uno3.png",
+      "/public/images/uno4.png",
+      "/public/images/uno5.png"
+    ],
+    "shops": [
+      {
+        "name": "Shazdeh Koochulo",
+        "link": "https://shazdehkoochulo.com",
+        "image": "/public/images/shazdeh_kocholo_shop.png"
+      },
+      {
+        "name": "Digikala",
+        "link": "https://www.digikala.com",
+        "image": "/public/images/digikala_shop.png"
+      },
+      {
+        "name": "Torob",
+        "link": "https://torob.com",
+        "image": "/public/images/torob.png"
+      }
+    ],
+    "properties": {
+      "Brand": "Andishe Sazan Pooya",
+      "Number of Players": "2 to 10 players",
+      "Age Range": "7 years and up",
+      "Playing Time": "15 to 30 minutes",
+      "Skills": "Precision, Quickness, Strategy",
+      "Game Type": "Group Card Game",
+      "Number of Cards": "52 cards + 2 guide cards"
+    },
+    "unique_code": "PRD-MQWL3M1S-ESRW"
+  },
+  "4": {
+    "title": "Skull Board Game | Skull",
+    "subtitle": "Risk and Bluffing Game",
+    "price": "530,000 Toman",
+    "description": "In Skull and Red Roses, everything takes shape in the players' minds! Each player plays one card face-down; then each player, in turn, adds one card until one player feels they can flip over a number of cards and get only 'Red Roses'! At this moment, the other players can raise the bet and claim they can flip over more cards! The one who makes the highest bid must flip over the number of cards they claimed! If they get only 'Red Roses', they win, but if they hit a 'Skull', they lose and must remove one of their cards from the game! Whoever successfully passes two challenges wins the game! The result of Skull is not determined by luck; it's determined by deceptive faces and eye contact! This game is suitable for ages 10 and up, 3 to 7 players, and a playing time of 10 to 20 minutes.",
+    "image": [
+      "/public/images/skull1.png",
+      "/public/images/skull2.png",
+      "/public/images/skull3.png",
+      "/public/images/skull4.png",
+      "/public/images/skull5.png",
+      "/public/images/skull6.png",
+      "/public/images/skull7.png"
+    ],
+    "shops": [
+      {
+        "name": "Shazdeh Koochulo",
+        "link": "https://shazdehkoochulo.com",
+        "image": "/public/images/shazdeh_kocholo_shop.png"
+      },
+      {
+        "name": "Digikala",
+        "link": "https://www.digikala.com",
+        "image": "/public/images/digikala_shop.png"
+      },
+      {
+        "name": "Torob",
+        "link": "https://torob.com",
+        "image": "/public/images/torob.png"
+      }
+    ],
+    "properties": {
+      "Brand": "AlphaGames",
+      "Number of Players": "3 to 7 players",
+      "Age Range": "10 years and up",
+      "Playing Time": "10 to 20 minutes",
+      "Skills": "Risk-taking, Bluffing, Decision-making",
+      "Game Type": "Group Card Game"
+    },
+    "unique_code": "PRD-MQWMFLQM-BNTM"
+  }
+}
