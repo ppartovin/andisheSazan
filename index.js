@@ -272,17 +272,36 @@ app.get('/blog/:id/:lang', validateId, async (req, res) => {
 // FAQ
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
 app.get('/faq/:lang', async (req, res) => {
+    console.log("test")
     try {
-        const faqs = await readJsonFile(config.PATHS.faqs);
+        const lang = req.params.lang;
+        
+        
+        // مسیرهای فایل بر اساس زبان
+        const faqsPaths = {
+            fa: config.PATHS.faqsFa,
+            en: config.PATHS.faqsEn
+        };
+        
+        // انتخاب مسیر مناسب، در صورت نامعتبر بودن زبان => فارسی
+        const faqsPath = faqsPaths[lang] || faqsPaths.fa;
+
+        
+
+        const faqs = await readJsonFile(faqsPath);
 
         if (!faqs || Object.keys(faqs).length === 0) {
-            return res.status(404).render('404', { message: 'سوالی یافت نشد' });
+            const errorMessage = lang === 'fa' ? 'سوالی یافت نشد' : 'No questions found';
+            return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'faq', req.params.lang, faqs);
+        renderPage(res, 'faq', lang, faqs);
     } catch (err) {
         console.error('FAQ error:', err.message);
-        res.status(500).render('err', { message: 'خطا در بارگذاری سوالات متداول' });
+        const errorMessage = req.params.lang === 'fa' 
+            ? 'خطا در بارگذاری سوالات متداول' 
+            : 'Error loading frequently asked questions';
+        res.status(500).render('err', { message: errorMessage });
     }
 });
 
