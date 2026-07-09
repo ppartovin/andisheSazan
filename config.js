@@ -16,6 +16,8 @@ const PATHS = {
     blogs: path.join(DATA_DIR, 'blogs.json'),
     faqsFa: path.join(DATA_DIR, 'faqsFa.json'),
     faqsEn: path.join(DATA_DIR, 'faqsEn.json'),
+    blogsFa: path.join(DATA_DIR, 'blogsFa.json'),
+    blogsEn: path.join(DATA_DIR, 'blogsEn.json'),
     indexData: path.join(DATA_DIR, 'index_data.json')
 };
 

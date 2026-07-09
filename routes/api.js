@@ -10,7 +10,9 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PATHS = {
     products: path.join(DATA_DIR, 'products.json'),
-    blogs: path.join(DATA_DIR, 'blogs.json')
+    blogs: path.join(DATA_DIR, 'blogs.json'),
+    blogsFa: path.join(DATA_DIR, 'blogsFa.json'),
+    blogsEn: path.join(DATA_DIR, 'blogsEn.json')
 };
 const POSTS_PER_PAGE = 5;
 
@@ -82,7 +84,7 @@ router.get('/products', async (req, res) => {
 });
 
 // API: Blogs (paginated)
-router.get('/blogs/:page', async (req, res) => {
+router.get('/blogs/:page/:lang', async (req, res) => {
     try {
         const page = parseInt(req.params.page) || 1;
         if (isNaN(page) || page < 1) {
@@ -92,7 +94,16 @@ router.get('/blogs/:page', async (req, res) => {
             });
         }
 
-        const blogs = Object.values(await readJsonFile(PATHS.blogs));
+        const lang = req.params.lang;
+
+        // انتخاب فایل بر اساس زبان
+        const blogsPaths = {
+            fa: PATHS.blogsFa,
+            en: PATHS.blogsEn
+        };
+        const blogsPath = blogsPaths[lang] || blogsPaths.fa;
+
+        const blogs = Object.values(await readJsonFile(blogsPath));
         
         if (!blogs || blogs.length === 0) {
             return res.status(404).json({
@@ -109,7 +120,7 @@ router.get('/blogs/:page', async (req, res) => {
             .slice(start, end)
             .map((blog, index) => ({
                 ...blog,
-                link: `/blog/${start + index + 1}/fa`
+                link: `/blog/${start + index + 1}/${lang}`
             }));
 
         res.json({

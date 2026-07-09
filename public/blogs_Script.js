@@ -41,7 +41,7 @@ let loading = false;
 let hasMore = true;
 let allPosts = [];          // ذخیره تمام پست‌های لود شده
 let searchTerm = '';
-
+const lang = document.documentElement.lang || 'fa';
 const container = document.getElementById('posts-container');
 const loader = document.getElementById('scroll-loader');
 const searchInput = document.getElementById('searchInput');
@@ -51,10 +51,26 @@ const searchBtn = document.getElementById('searchBtn');
 // RENDER POSTS (بر اساس فیلتر)
 // ==============================
 
+function noPostsMsg() {
+    return lang === 'en' ? 'No posts found.' : 'هیچ مطلبی یافت نشد.';
+}
+
+function readMoreText() {
+    return lang === 'en' ? 'Read more' : 'ادامه مطلب';
+}
+
+function noMorePostsText() {
+    return lang === 'en' ? 'No more posts' : 'مقاله بیشتری وجود ندارد';
+}
+
+function loadingErrorText() {
+    return lang === 'en' ? 'Error loading posts' : 'خطا در بارگذاری مقالات';
+}
+
 function renderPosts(posts) {
     container.innerHTML = '';
     if (posts.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:#999;">هیچ مطلبی یافت نشد.</p>';
+        container.innerHTML = `<p style="text-align:center;color:#999;">${noPostsMsg()}</p>`;
         return;
     }
     posts.forEach(post => {
@@ -80,7 +96,8 @@ function renderPosts(posts) {
 
         const link = document.createElement('a');
         link.href = isValidUrl(post.link) ? post.link : '#';
-        link.textContent = 'ادامه مطلب';
+        link.textContent = readMoreText();
+        console.log(link.textContent)
         link.className = 'btn-view';
         div.appendChild(link);
 
@@ -116,7 +133,8 @@ async function loadPosts() {
     loading = true;
 
     try {
-        const res = await fetch(`/api/blogs/${page}`);
+        console.log('lang:',lang)
+        const res = await fetch(`/api/blogs/${page}/${lang}`);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
 
@@ -139,12 +157,12 @@ async function loadPosts() {
         page++;
 
         if (!hasMore) {
-            loader.innerText = 'مقاله بیشتری وجود ندارد';
+            loader.innerText = noMorePostsText();
         }
 
     } catch (err) {
         console.error('Error loading posts:', err);
-        loader.innerText = 'خطا در بارگذاری مقالات';
+        loader.innerText = loadingErrorText();
     } finally {
         loading = false;
     }

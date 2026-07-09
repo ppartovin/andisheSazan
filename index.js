@@ -255,17 +255,32 @@ app.get('/blog', (req, res) => res.redirect('/blogs'));
 app.get('/blog/:id', (req, res) => res.redirect(`/blog/${req.params.id}/fa`));
 app.get('/blog/:id/:lang', validateId, async (req, res) => {
     try {
-        const blogs = await readJsonFile(config.PATHS.blogs);
+        const lang = req.params.lang;
+
+        // مسیرهای فایل بر اساس زبان
+        const blogsPaths = {
+            fa: config.PATHS.blogsFa,
+            en: config.PATHS.blogsEn
+        };
+
+        // انتخاب مسیر مناسب، در صورت نامعتبر بودن زبان => فارسی
+        const blogsPath = blogsPaths[lang] || blogsPaths.fa;
+
+        const blogs = await readJsonFile(blogsPath);
         const blog = blogs[req.params.id];
 
         if (!blog) {
-            return res.status(404).render('404', { message: 'بلاگ یافت نشد' });
+            const errorMessage = lang === 'fa' ? 'بلاگ یافت نشد' : 'Blog not found';
+            return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'blog', req.params.lang, blog);
+        renderPage(res, 'blog', lang, blog);
     } catch (err) {
         console.error('Blog error:', err.message);
-        res.status(500).render('err', { message: 'خطا در بارگذاری بلاگ' });
+        const errorMessage = req.params.lang === 'fa'
+            ? 'خطا در بارگذاری بلاگ'
+            : 'Error loading blog';
+        res.status(500).render('err', { message: errorMessage });
     }
 });
 
