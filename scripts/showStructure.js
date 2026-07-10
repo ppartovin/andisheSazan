@@ -116,14 +116,18 @@ showStructure(ROOT_DIR, '    ');
 
 // Then, count total lines
 console.log('\n' + '='.repeat(50));
-console.log('\n📊 Total Code Statistics:');
+console.log('\n📊 Total Code Statistics (Text Files Only):');
 
 const allFiles = getAllFiles(ROOT_DIR);
-const jsFiles = allFiles.filter(f => f.ext === '.js');
-const ejsFiles = allFiles.filter(f => f.ext === '.ejs');
-const cssFiles = allFiles.filter(f => f.ext === '.css');
-const htmlFiles = allFiles.filter(f => f.ext === '.html');
-const jsonFiles = allFiles.filter(f => f.ext === '.json');
+
+// Filter only text files for statistics
+const textFiles = allFiles.filter(f => isTextFile(f.path));
+
+const jsFiles = textFiles.filter(f => f.ext === '.js');
+const ejsFiles = textFiles.filter(f => f.ext === '.ejs');
+const cssFiles = textFiles.filter(f => f.ext === '.css');
+const htmlFiles = textFiles.filter(f => f.ext === '.html');
+const jsonFiles = textFiles.filter(f => f.ext === '.json');
 
 const countTotalLines = (files) => {
     return files.reduce((sum, file) => sum + countLines(file.path), 0);
@@ -134,5 +138,15 @@ console.log(`   📄 EJS files:       ${ejsFiles.length} files, ${countTotalLine
 console.log(`   📄 CSS files:       ${cssFiles.length} files, ${countTotalLines(cssFiles)} lines`);
 console.log(`   📄 HTML files:      ${htmlFiles.length} files, ${countTotalLines(htmlFiles)} lines`);
 console.log(`   📄 JSON files:      ${jsonFiles.length} files, ${countTotalLines(jsonFiles)} lines`);
-console.log(`   📄 Total files:     ${allFiles.length} files, ${countTotalLines(allFiles)} lines`);
+console.log(`   📄 Total text files: ${textFiles.length} files, ${countTotalLines(textFiles)} lines`);
+
+// Optional: Show image files count (without line counting)
+const imageFiles = allFiles.filter(f => {
+    const ext = f.ext.toLowerCase();
+    return ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.bmp'].includes(ext);
+});
+if (imageFiles.length > 0) {
+    console.log(`   🖼️ Image files:      ${imageFiles.length} files (ignored in line count)`);
+}
+
 console.log('\n' + '='.repeat(50));

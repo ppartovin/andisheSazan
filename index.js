@@ -60,15 +60,17 @@ const validateId = (req, res, next) => {
 // HELPERS
 // ==============================
 
-const renderPage = (res, pageName, lang, data = {}) => {
+const renderPage = (req,res, pageName, lang, data = {}) => {
     if (!config.VALID_LANGS.includes(lang)) {
         return res.redirect(`/${pageName}/fa`);
     }
 
-    const suffix = lang === 'en' ? 'En' : 'Fa';
-    const viewName = `${pageName}${suffix}`;
+    const theme = req.cookies?.light_status || 'day';
 
-    res.render(viewName, { data, lang }, (err, html) => {
+    const suffix = lang === 'en' ? 'En' : 'Fa';
+    const viewName = `${pageName}${suffix}${theme === 'night' ? 'Ni' : ''}`;
+
+    res.render(viewName, { data, lang, theme}, (err, html) => {
         if (err) {
             return res.status(404).render('404', { message: 'Page not found' });
         }
@@ -140,7 +142,7 @@ app.get('/index/:lang', async (req, res) => {
 
         const finalProducts = topProducts.slice(0, config.TOP_PRODUCTS_MAX);
         console.log(finalProducts);
-        renderPage(res, 'index', req.params.lang, { topProducts: finalProducts });
+        renderPage(req,res, 'index', req.params.lang, { topProducts: finalProducts });
     } catch (err) {
         console.error('Index page error:', err.message);
         res.status(500).render('err', { message: 'خطا در بارگذاری صفحه اصلی' });
@@ -155,7 +157,7 @@ app.get('/err', (req, res) => {
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
 app.get('/aboutus/:lang', (req, res) => {
     try {
-        renderPage(res, 'aboutus', req.params.lang);
+        renderPage(req,res, 'aboutus', req.params.lang);
     } catch (err) {
         console.error('AboutUs error:', err.message);
         res.status(500).render('err');
@@ -166,7 +168,7 @@ app.get('/aboutus/:lang', (req, res) => {
 app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => {
     try {
-        renderPage(res, 'team', req.params.lang);
+        renderPage(req,res, 'team', req.params.lang);
     } catch (err) {
         console.error('Team error:', err.message);
         res.status(500).render('err');
@@ -177,7 +179,7 @@ app.get('/team/:lang', (req, res) => {
 app.get('/wholesale', (req, res) => res.redirect('/wholesale/fa'));
 app.get('/wholesale/:lang', (req, res) => {
     try {
-        renderPage(res, 'wholesale', req.params.lang);
+        renderPage(req,res, 'wholesale', req.params.lang);
     } catch (err) {
         console.error('Wholesale error:', err.message);
         res.status(500).render('err');
@@ -188,7 +190,7 @@ app.get('/wholesale/:lang', (req, res) => {
 app.get('/products', (req, res) => res.redirect('/products/fa'));
 app.get('/products/:lang', (req, res) => {
     try {
-        renderPage(res, 'products', req.params.lang);
+        renderPage(req,res, 'products', req.params.lang);
     } catch (err) {
         console.error('Products listing error:', err.message);
         res.status(500).render('err');
@@ -219,7 +221,7 @@ app.get('/product/:id/:lang', validateId, async (req, res) => {
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'product', lang, product);
+        renderPage(req,res, 'product', lang, product);
     } catch (err) {
         console.error('Product error:', err.message);
         const errorMessage = req.params.lang === 'fa'
@@ -233,7 +235,7 @@ app.get('/product/:id/:lang', validateId, async (req, res) => {
 app.get('/contact', (req, res) => res.redirect('/contact/fa'));
 app.get('/contact/:lang', (req, res) => {
     try {
-        renderPage(res, 'contact', req.params.lang);
+        renderPage(req,res, 'contact', req.params.lang);
     } catch (err) {
         console.error('Contact error:', err.message);
         res.status(500).render('err');
@@ -244,7 +246,7 @@ app.get('/contact/:lang', (req, res) => {
 app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => {
     try {
-        renderPage(res, 'trusted', req.params.lang);
+        renderPage(req,res, 'trusted', req.params.lang);
     } catch (err) {
         console.error('Trusted error:', err.message);
         res.status(500).render('err');
@@ -255,7 +257,7 @@ app.get('/trusted/:lang', (req, res) => {
 app.get('/partnership', (req, res) => res.redirect('/partnership/fa'));
 app.get('/partnership/:lang', (req, res) => {
     try {
-        renderPage(res, 'partnership', req.params.lang);
+        renderPage(req,res, 'partnership', req.params.lang);
     } catch (err) {
         console.error('Partnership error:', err.message);
         res.status(500).render('err');
@@ -266,7 +268,7 @@ app.get('/partnership/:lang', (req, res) => {
 app.get('/blogs', (req, res) => res.redirect('/blogs/fa'));
 app.get('/blogs/:lang', (req, res) => {
     try {
-        renderPage(res, 'blogs', req.params.lang);
+        renderPage(req,res, 'blogs', req.params.lang);
     } catch (err) {
         console.error('Blogs listing error:', err.message);
         res.status(500).render('err');
@@ -297,7 +299,7 @@ app.get('/blog/:id/:lang', validateId, async (req, res) => {
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'blog', lang, blog);
+        renderPage(req,res, 'blog', lang, blog);
     } catch (err) {
         console.error('Blog error:', err.message);
         const errorMessage = req.params.lang === 'fa'
@@ -333,7 +335,7 @@ app.get('/faq/:lang', async (req, res) => {
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(res, 'faq', lang, faqs);
+        renderPage(req,res, 'faq', lang, faqs);
     } catch (err) {
         console.error('FAQ error:', err.message);
         const errorMessage = req.params.lang === 'fa' 
@@ -347,7 +349,7 @@ app.get('/faq/:lang', async (req, res) => {
 app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
 app.get('/customorder/:lang', (req, res) => {
     try {
-        renderPage(res, 'customorder', req.params.lang);
+        renderPage(req,res, 'customorder', req.params.lang);
     } catch (err) {
         console.error('Custom order error:', err.message);
         res.status(500).render('err');

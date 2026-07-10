@@ -3,6 +3,7 @@
 <!-- ============================== -->
 <link rel="stylesheet" href="/public/css/fonts.css">
 <script src="/public/lang_changer_Script.js"></script>
+<script src="/public/change_light.js"></script>
 
 <style>
 
@@ -130,6 +131,34 @@
     }
 
     /* ============================== */
+    /* THEME TOGGLE BUTTON STYLES */
+    /* ============================== */
+    .theme-toggle {
+        background: var(--bg-warm);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        color: var(--text);
+        transition: all 0.2s ease;
+        min-width: 40px;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .theme-toggle:hover {
+        border-color: var(--accent-light);
+        background: var(--border);
+    }
+
+    .theme-toggle:active {
+        transform: scale(0.95);
+    }
+
+    /* ============================== */
     /* RESPONSIVE */
     /* ============================== */
     @media (max-width: 768px) {
@@ -156,6 +185,13 @@
         .lang-switcher a {
             font-size: 0.75rem;
             padding: 3px 10px;
+        }
+
+        .theme-toggle {
+            font-size: 1rem;
+            padding: 3px 10px;
+            min-width: 34px;
+            min-height: 30px;
         }
     }
 
@@ -185,6 +221,13 @@
             font-size: 0.7rem;
             padding: 2px 8px;
         }
+
+        .theme-toggle {
+            font-size: 0.9rem;
+            padding: 2px 8px;
+            min-width: 30px;
+            min-height: 26px;
+        }
     }
 </style>
 
@@ -213,8 +256,10 @@
         <!-- ===== LANGUAGE SWITCHER ===== -->
         <div class="lang-switcher">
             <a class="change_langauge_fa">فا</a>
-            <a class="active" onclick="return false;">EN</a>
         </div>
+
+        <!-- ===== NIGHT/DAY TOGGLE BUTTON ===== -->
+        <button class="theme-toggle go_night">🌙</button>
     </nav>
 
 </header>

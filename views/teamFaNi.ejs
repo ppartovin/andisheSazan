@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اعضای تیم</title>
+
+    <link rel="stylesheet" href="/public/css/fonts.css">
+
+    <style>
+
+		:root {
+			--primary: #C4A97D;
+			--secondary: #3A3A3A;
+			--accent: #C4A97D;
+			--accent-light: #A0845C;
+			--bg: #1A1A1A;
+			--bg-warm: #2A2A2A;
+			--border: #444444;
+			--text: #F0F0F0;
+			--text-light: #B0B0B0;
+		}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        /* ============================== */
+        /* MAIN */
+        /* ============================== */
+        main {
+            padding: 0 5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        main h1 {
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.2;
+            margin-top: 4rem;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        main>p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin-bottom: 3rem;
+        }
+
+        /* ============================== */
+        /* TEAM SECTION (حالت مقاله‌ای) */
+        /* ============================== */
+        .team {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5rem;
+            margin: 2rem 0 4rem;
+        }
+
+        .member {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 2rem;
+            align-items: start;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2.5rem;
+        }
+
+        .member:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .member img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            background: var(--bg-warm);
+            justify-self: center;
+        }
+
+        .member-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .member-info h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .member-info .role {
+            font-weight: 500;
+            color: var(--accent);
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .member-info .bio {
+            font-size: 1rem;
+            color: var(--text-light);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        /* ============================== */
+        /* RESPONSIVE */
+        /* ============================== */
+        @media (max-width: 768px) {
+            main {
+                padding: 0 2rem;
+            }
+
+            main h1 {
+                font-size: 2.2rem;
+                margin-top: 3rem;
+            }
+
+            .member {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 1rem;
+                padding-bottom: 2rem;
+            }
+
+            .member img {
+                width: 150px;
+                height: 150px;
+            }
+
+            .member-info h2 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 0 1.2rem;
+            }
+
+            main h1 {
+                font-size: 1.8rem;
+                margin-top: 2rem;
+            }
+
+            main>p {
+                font-size: 1rem;
+            }
+
+            .member img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .member-info .bio {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================== -->
+    <!-- HEADER: Include header partial -->
+    <!-- ============================== -->
+    <%- include('./partials/headerNi.ejs') %>
+
+    <!-- ============================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================== -->
+    <main>
+
+        <!-- Page title -->
+        <h1>اعضای تیم</h1>
+
+        <!-- Introduction paragraph -->
+        <p>
+            در این بخش می‌توانید با اعضای تیم شرکت آشنا شوید و نقش هر کدام را در مجموعه ببینید.
+        </p>
+
+        <!-- ============================== -->
+        <!-- TEAM SECTION -->
+        <!-- ============================== -->
+        <section class="team">
+
+            <!-- Team member 1 -->
+            <article class="member">
+                <img src="/public/member1.png" alt="علی رضایی">
+                <div class="member-info">
+                    <h2>علی رضایی</h2>
+                    <p class="role">مدیر فنی</p>
+                    <p class="bio">
+                        علی مسئول هدایت تیم فنی شرکت است و در طراحی و توسعه سیستم‌های نرم‌افزاری نقش اصلی دارد.
+                    </p>
+                </div>
+            </article>
+
+            <!-- Team member 2 -->
+            <article class="member">
+                <img src="/public/member2.png" alt="سارا محمدی">
+                <div class="member-info">
+                    <h2>سارا محمدی</h2>
+                    <p class="role">طراح رابط کاربری</p>
+                    <p class="bio">
+                        سارا روی طراحی رابط کاربری و تجربه کاربری محصولات کار می‌کند.
+                    </p>
+                </div>
+            </article>
+
+            <!-- Team member 3 -->
+            <article class="member">
+                <img src="/public/member3.png" alt="محمد کریمی">
+                <div class="member-info">
+                    <h2>محمد کریمی</h2>
+                    <p class="role">توسعه‌دهنده بک‌اند</p>
+                    <p class="bio">
+                        محمد مسئول توسعه سرویس‌های سمت سرور و زیرساخت‌های نرم‌افزاری است.
+                    </p>
+                </div>
+            </article>
+
+        </section>
+
+    </main>
+
+    <!-- ============================== -->
+    <!-- FOOTER: Include footer partial -->
+    <!-- ============================== -->
+    <%- include('./partials/footerNi.ejs') %>
+
+</body>
+</html>
