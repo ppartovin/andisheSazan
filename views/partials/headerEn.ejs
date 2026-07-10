@@ -2,6 +2,8 @@
 <!-- HEADER STYLES -->
 <!-- ============================== -->
 <link rel="stylesheet" href="/public/css/fonts.css">
+<script src="/public/lang_changer_Script.js"></script>
+
 <style>
 
     :root {
@@ -83,6 +85,51 @@
     }
 
     /* ============================== */
+    /* LANGUAGE SWITCHER */
+    /* ============================== */
+    .lang-switcher {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: var(--bg-warm);
+        border-radius: 6px;
+        padding: 3px;
+        border: 1px solid var(--border);
+    }
+
+    .lang-switcher a {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        color: var(--text-light);
+        transition: all .2s ease;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    .lang-switcher a:hover {
+        color: var(--text);
+        background: rgba(160, 132, 92, 0.06);
+    }
+
+    .lang-switcher a.active {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        cursor: default;
+    }
+
+    .lang-switcher a.active:hover {
+        color: var(--text);
+        border-color: var(--border);
+        background: var(--bg);
+    }
+
+    /* ============================== */
     /* RESPONSIVE */
     /* ============================== */
     @media (max-width: 768px) {
@@ -105,6 +152,11 @@
         nav a {
             font-size: 0.85rem;
         }
+
+        .lang-switcher a {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -121,17 +173,23 @@
         nav {
             justify-content: center;
             gap: 0.8rem;
+            flex-wrap: wrap;
         }
 
         nav a {
             font-size: 0.8rem;
             margin: 0 4px;
         }
+
+        .lang-switcher a {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+        }
     }
 </style>
 
 <!-- ============================== -->
-<!-- HEADER -->
+<!-- HEADER - ENGLISH VERSION -->
 <!-- ============================== -->
 <header>
 
@@ -151,6 +209,12 @@
         <a href="/products/en">Products</a>
         <a href="/aboutus/en">About Us</a>
         <a href="/contact/en">Contact Us</a>
+
+        <!-- ===== LANGUAGE SWITCHER ===== -->
+        <div class="lang-switcher">
+            <a class="change_langauge_fa">فا</a>
+            <a class="active" onclick="return false;">EN</a>
+        </div>
     </nav>
 
 </header>

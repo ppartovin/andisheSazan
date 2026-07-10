@@ -28,9 +28,9 @@ app.use(compression());
 // RATE LIMITING
 // ==============================
 
-app.use('/admin/login', config.loginLimiter);
+/* app.use('/admin/login', config.loginLimiter);
 app.use(config.limiterPerMinute);
-app.use(config.limiterPer30Minutes);
+app.use(config.limiterPer30Minutes); */
 
 
 // ==============================
