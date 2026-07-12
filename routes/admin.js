@@ -167,16 +167,24 @@ router.post('/login', async (req, res) => {
         const admin = admins.find(u => u.username === username);
 
         if (!admin) {
-            logger.withRequest(req, `کاربر یافت نشد: ${username}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'user_not_found' }); // ← پایان ناموفق
+            // ✅ لاگ تلاش ناموفق - کاربر وجود ندارد (با سطح WARN)
+            logger.warn(`❌ تلاش ناموفق ورود: کاربر "${username}" وجود ندارد`, {
+                ip: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+            operation.end('failed', { reason: 'user_not_found' });
             return res.render('adminPanel/adminLogin', { error: 'کاربر یافت نشد' });
         }
 
         const isMatch = await bcrypt.compare(password, admin.password);
 
         if (!isMatch) {
-            logger.withRequest(req, `رمز عبور اشتباه برای کاربر: ${username}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'wrong_password' }); // ← پایان ناموفق
+            // ✅ لاگ تلاش ناموفق - رمز عبور اشتباه (با سطح WARN)
+            logger.warn(`❌ تلاش ناموفق ورود: رمز عبور اشتباه برای "${username}"`, {
+                ip: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+            operation.end('failed', { reason: 'wrong_password' });
             return res.render('adminPanel/adminLogin', { error: 'رمز عبور اشتباه است' });
         }
 
