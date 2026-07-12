@@ -38,8 +38,8 @@
         }
 
         .product-gallery button {
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: black;
             border: none;
             padding: 0.7rem 1.2rem;
             border-radius: 4px;
@@ -155,8 +155,8 @@
         #more,
         #less {
             margin-top: 1rem;
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: black;
             border: none;
             padding: 0.6rem 1.8rem;
             border-radius: 4px;

@@ -59,8 +59,8 @@
         }
 
         .faq-search button {
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: black;
             border: none;
             padding: 0.7rem 1.8rem;
             border-radius: 4px;

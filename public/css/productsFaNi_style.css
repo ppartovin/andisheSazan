@@ -69,8 +69,8 @@
         }
 
         .product-search button {
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: black;
             border: none;
             padding: 0.7rem 1.8rem;
             border-radius: 4px;
@@ -135,8 +135,8 @@
 
         .product-item a {
             display: inline-block;
-            background: var(--primary);
-            color: white;
+            background: white;
+            color: black;
             border: none;
             padding: 0.4rem 1.2rem;
             font-family: inherit;
