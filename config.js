@@ -132,7 +132,7 @@ const helmetConfig = {
             fontSrc: ["'self'"],
             connectSrc: ["'self'"],
             frameAncestors: ["'none'"],
-            upgradeInsecureRequests: true,
+            upgradeInsecureRequests: [true],
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
             formAction: ["'self'"]
