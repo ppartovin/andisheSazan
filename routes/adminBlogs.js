@@ -102,6 +102,31 @@ const checkToken = (req, res, next) => {
     }
 };
 
+
+const isValidImageUrl = (url) => {
+    if (!url) return true;
+    
+    try {
+        const parsed = new URL(url);
+        
+        // ✅ فقط HTTP و HTTPS مجاز
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return false;
+        }
+        
+        // ✅ پسوندهای مجاز
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const ext = path.extname(parsed.pathname).toLowerCase();
+        if (!validExtensions.includes(ext)) {
+            return false;
+        }
+        
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 // ==============================
 // ROUTES
 // ==============================
@@ -154,9 +179,20 @@ router.post('/add', checkToken, async (req, res) => {
         const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
         const writer = escapeHtml(req.body.writer?.trim() || '');
         const date = escapeHtml(req.body.date?.trim() || '');
-        const image = escapeHtml(req.body.image?.trim() || '');
+        const imageRaw = req.body.image?.trim() || '';  // ← دریافت خام
         const text = escapeHtml(req.body.text?.trim() || '');
 
+                // ✅ اعتبارسنجی تصویر (قبل از escape)
+        if (imageRaw && !isValidImageUrl(imageRaw)) {
+            logger.withRequest(req, `آدرس تصویر نامعتبر: ${imageRaw}`);
+            operation.end('failed', { reason: 'invalid_image' });
+            return res.render('adminPanel/adminBlogsAdd', { 
+                error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.' 
+            });
+        }
+/*         const image = escapeHtml(req.body.image?.trim() || '');
+ */
+        const image = imageRaw;
         // اعتبارسنجی
         if (!title || title.trim() === '') {
             logger.withRequest(req, 'تلاش برای افزودن بلاگ بدون عنوان'); // ← لاگ با اطلاعات درخواست
@@ -255,9 +291,24 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
         const writer = escapeHtml(req.body.writer?.trim() || '');
         const date = escapeHtml(req.body.date?.trim() || '');
-        const image = escapeHtml(req.body.image?.trim() || '');
+        const imageRaw = req.body.image?.trim() || '';  // ← دریافت خام
         const text = escapeHtml(req.body.text?.trim() || '');
 
+        // ✅ اعتبارسنجی تصویر (قبل از escape)
+        if (imageRaw && !isValidImageUrl(imageRaw)) {
+            logger.withRequest(req, `آدرس تصویر نامعتبر در ویرایش: ${imageRaw}`);
+            operation.end('failed', { reason: 'invalid_image' });
+            
+            // دوباره بلاگ را برای نمایش در فرم بارگذاری کنید
+            const blogs = await readJsonFile(BLOGS_PATH);
+            return res.render('adminPanel/adminBlogsEdit', { 
+                blog: { id: blogId, ...blogs[blogId] },
+                error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.'
+            });
+        }
+/*         const image = escapeHtml(req.body.image?.trim() || '');
+ */
+        const image = imageRaw;
         // اعتبارسنجی ID
         if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
             logger.withRequest(req, `شناسه بلاگ نامعتبر برای ویرایش: ${blogId}`); // ← لاگ با اطلاعات درخواست

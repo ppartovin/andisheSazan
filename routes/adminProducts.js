@@ -113,6 +113,43 @@ const checkToken = (req, res, next) => {
 // VALIDATION HELPERS
 // ==============================
 
+// ==============================
+// VALIDATION HELPERS
+// ==============================
+
+const isValidImageUrl = (url) => {
+    if (!url) return true; // اگر خالی باشد، معتبر است (اختیاری)
+    
+    try {
+        const parsed = new URL(url);
+        
+        // 1️⃣ فقط پروتکل HTTP و HTTPS مجاز است
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return false;
+        }
+        
+        // 2️⃣ پسوندهای مجاز تصویر
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const ext = path.extname(parsed.pathname).toLowerCase();
+        if (!validExtensions.includes(ext)) {
+            return false;
+        }
+        
+        // 3️⃣ (اختیاری) جلوگیری از آدرس‌های مخرب
+        // بررسی اینکه آدرس به دامنه‌های معروف مخرب نباشد
+        const hostname = parsed.hostname.toLowerCase();
+        const blockedDomains = ['malicious.com', 'evil.com']; // لیست سیاه
+        if (blockedDomains.some(domain => hostname.includes(domain))) {
+            return false;
+        }
+        
+        return true;
+    } catch {
+        // اگر URL معتبر نباشد، رد می‌شود
+        return false;
+    }
+};
+
 const isValidPrice = (price) => {
     if (!price) return true;
     const num = parseFloat(price.replace(/,/g, ''));
@@ -240,8 +277,38 @@ router.post('/add', checkToken, async (req, res) => {
         // ==============================
         // پردازش تصاویر (آرایه)
         // ==============================
-        const imageArray = req.body.image || [];
+/*         const imageArray = req.body.image || [];
         const cleanedImages = imageArray.filter(img => img && img.trim()).map(img => img.trim());
+ */
+
+        const imageArray = req.body.image || [];
+        const cleanedImages = [];
+        const MAX_IMAGES = 10;
+        // اعتبارسنجی تعداد تصاویر
+        if (imageArray.length > MAX_IMAGES) {
+            logger.withRequest(req, `تعداد تصاویر بیشتر از حد مجاز: ${imageArray.length}`);
+            operation.end('failed', { reason: 'too_many_images' });
+            return res.render('adminPanel/adminProductsAdd', { 
+                error: `حداکثر ${MAX_IMAGES} تصویر مجاز است` 
+            });
+        }
+
+        // اعتبارسنجی هر تصویر
+        for (const img of imageArray) {
+            if (img && img.trim()) {
+                const trimmed = img.trim();
+                
+                if (!isValidImageUrl(trimmed)) {
+                    logger.withRequest(req, `آدرس تصویر نامعتبر: ${trimmed}`);
+                    operation.end('failed', { reason: 'invalid_image_url' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.' 
+                    });
+                }
+                
+                cleanedImages.push(trimmed);
+            }
+        }
 
         // ==============================
         // پردازش فروشگاه‌ها (با Sanitize و اعتبارسنجی)
@@ -463,6 +530,36 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             });
         }
 
+        const imageArray = req.body.image || [];
+        const cleanedImages = [];
+        const MAX_IMAGES = 10;
+
+        if (imageArray.length > MAX_IMAGES) {
+            logger.withRequest(req, `تعداد تصاویر بیشتر از حد مجاز در ویرایش: ${imageArray.length}`);
+            operation.end('failed', { reason: 'too_many_images' });
+            return res.render('adminPanel/adminProductsEdit', { 
+                product: { id: productId, ...products[productId] },
+                error: `حداکثر ${MAX_IMAGES} تصویر مجاز است` 
+            });
+        }
+
+        for (const img of imageArray) {
+            if (img && img.trim()) {
+                const trimmed = img.trim();
+                
+                if (!isValidImageUrl(trimmed)) {
+                    logger.withRequest(req, `آدرس تصویر نامعتبر در ویرایش: ${trimmed}`);
+                    operation.end('failed', { reason: 'invalid_image_url' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'آدرس تصویر نامعتبر است' 
+                    });
+                }
+                
+                cleanedImages.push(trimmed);
+            }
+        }
+
         // ==============================
         // پردازش فروشگاه‌ها در ویرایش (با Sanitize و اعتبارسنجی)
         // ==============================
@@ -572,6 +669,7 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             subtitle: sanitizeInput(subtitle || products[productId].subtitle || ''),
             price: price?.trim() || products[productId].price || '',
             description: sanitizeInput(description || products[productId].description || ''),
+            image: cleanedImages, // ← اضافه کنید
             shops: shops,
             properties: properties
         };

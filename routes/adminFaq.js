@@ -103,16 +103,6 @@ const checkToken = (req, res, next) => {
 };
 
 // ==============================
-// VALIDATION HELPERS
-// ==============================
-
-const isValidText = (text) => {
-    // فقط حروف فارسی، انگلیسی، اعداد، فاصله، و علائم نگارشی معمول
-    const regex = /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FFa-zA-Z0-9\s\.\،\؟\!\;\:\-\_\(\)\"]+$/;
-    return regex.test(text);
-};
-
-// ==============================
 // ROUTES
 // ==============================
 
@@ -185,23 +175,6 @@ router.post('/add', checkToken, async (req, res) => {
             operation.end('failed', { reason: 'answer_too_long' }); // ← پایان ناموفق
             return res.render('adminPanel/adminFaqAdd', { 
                 error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد' 
-            });
-        }
-
-        // اعتبارسنجی کاراکترهای سوال
-        if (!isValidText(question)) {
-            logger.withRequest(req, 'سوال شامل کاراکترهای غیرمجاز است'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_question_chars' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqAdd', { 
-                error: 'سوال شامل کاراکترهای غیرمجاز است' 
-            });
-        }
-
-        if (!isValidText(answer)) {
-            logger.withRequest(req, 'پاسخ شامل کاراکترهای غیرمجاز است'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_answer_chars' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqAdd', { 
-                error: 'پاسخ شامل کاراکترهای غیرمجاز است' 
             });
         }
 
@@ -304,25 +277,6 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             return res.render('adminPanel/adminFaqEdit', { 
                 faq: { id: faqId, ...faqs[faqId] },
                 error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد'
-            });
-        }
-
-        // اعتبارسنجی کاراکترهای سوال
-        if (!isValidText(question)) {
-            logger.withRequest(req, 'سوال شامل کاراکترهای غیرمجاز است'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_question_chars' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqEdit', { 
-                faq: { id: faqId, ...faqs[faqId] },
-                error: 'سوال شامل کاراکترهای غیرمجاز است' 
-            });
-        }
-
-        if (!isValidText(answer)) {
-            logger.withRequest(req, 'پاسخ شامل کاراکترهای غیرمجاز است'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_answer_chars' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqEdit', {
-                faq: { id: faqId, ...faqs[faqId] },
-                error: 'پاسخ شامل کاراکترهای غیرمجاز است' 
             });
         }
 

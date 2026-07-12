@@ -6,6 +6,7 @@ const fs = require('fs').promises;
 const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
 const { logger } = require('../logger'); // ← اضافه کردن logger
+const rateLimit = require('express-rate-limit'); // ← اضافه کنید
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
@@ -15,6 +16,101 @@ if (!SECRET_KEY) {
 
 const IMAGES_DIR = path.join(__dirname, '..', 'public', 'images');
 const IMAGES_PATH = '/public/images';
+
+
+// ==============================
+// RATE LIMITERS FOR UPLOAD
+// ==============================
+
+// ✅ محدودیت تعداد آپلود: ۴۰ تا در نیم ساعت
+const uploadCountLimiter = rateLimit({
+    windowMs: 30 * 60 * 1000, // 30 دقیقه
+    max: 40, // حداکثر ۴۰ آپلود
+    message: { error: 'تعداد آپلود بیش از حد مجاز (حداکثر ۴۰ تا در نیم ساعت)' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        // کلید بر اساس کاربر یا IP
+        return req.user?.username || req.ip;
+    },
+    handler: (req, res, next, options) => {
+        logger.warn(`Upload count limit exceeded (40 per 30 min)`, {
+            ip: req.ip,
+            username: req.user?.username || 'unknown',
+            userAgent: req.headers['user-agent']
+        });
+        res.status(options.statusCode).json(options.message);
+    }
+});
+
+// ✅ محدودیت تعداد آپلود: ۱۲۰ تا در سه ساعت
+const uploadCountLimiter3h = rateLimit({
+    windowMs: 3 * 60 * 60 * 1000, // 3 ساعت
+    max: 120, // حداکثر ۱۲۰ آپلود
+    message: { error: 'تعداد آپلود بیش از حد مجاز (حداکثر ۱۲۰ تا در سه ساعت)' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.user?.username || req.ip;
+    },
+    handler: (req, res, next, options) => {
+        logger.warn(`Upload count limit exceeded (120 per 3 hours)`, {
+            ip: req.ip,
+            username: req.user?.username || 'unknown',
+            userAgent: req.headers['user-agent']
+        });
+        res.status(options.statusCode).json(options.message);
+    }
+});
+
+// ✅ محدودیت حجم آپلود: ۱ گیگ در نیم ساعت
+// برای این کار باید حجم فایل‌های آپلود شده را در حافظه نگه داریم
+// از یک Map ساده استفاده می‌کنیم
+const uploadSizeTracker = new Map();
+
+const uploadSizeLimiter = async (req, res, next) => {
+    const key = req.user?.username || req.ip;
+    const now = Date.now();
+    const windowMs = 30 * 60 * 1000; // 30 دقیقه
+    const maxSize = 1 * 1024 * 1024 * 1024; // 1 گیگابایت
+
+    // پاک کردن رکوردهای قدیمی
+    const userData = uploadSizeTracker.get(key) || { totalSize: 0, resetTime: now + windowMs };
+    
+    // اگر زمان بازنشانی گذشته، ریست کن
+    if (now > userData.resetTime) {
+        userData.totalSize = 0;
+        userData.resetTime = now + windowMs;
+    }
+
+    // ذخیره در req برای استفاده بعدی در multer
+    req.uploadSizeData = userData;
+    req.maxUploadSize = maxSize;
+    req.windowMs = windowMs;
+
+    next();
+};
+
+// ✅ محدودیت حجم آپلود: ۳ گیگ در سه ساعت
+const uploadSizeLimiter3h = async (req, res, next) => {
+    const key = `${req.user?.username || req.ip}_3h`;
+    const now = Date.now();
+    const windowMs = 3 * 60 * 60 * 1000; // 3 ساعت
+    const maxSize = 3 * 1024 * 1024 * 1024; // 3 گیگابایت
+
+    const userData = uploadSizeTracker.get(key) || { totalSize: 0, resetTime: now + windowMs };
+    
+    if (now > userData.resetTime) {
+        userData.totalSize = 0;
+        userData.resetTime = now + windowMs;
+    }
+
+    req.uploadSizeData3h = userData;
+    req.maxUploadSize3h = maxSize;
+    req.windowMs3h = windowMs;
+
+    next();
+};
 
 // ==============================
 // CREATE IMAGES DIRECTORY
@@ -89,6 +185,8 @@ const generateRandomName = () => {
 const createImageLink = (filename) => {
     return path.posix.join(IMAGES_PATH, filename);
 };
+
+
 
 // ==============================
 // MULTER CONFIG
@@ -178,7 +276,7 @@ router.get('/add', checkToken, (req, res) => {
 });
 
 // Upload image
-router.post('/add', checkToken, (req, res) => {
+router.post('/add', checkToken,uploadCountLimiter,uploadCountLimiter3h,uploadSizeLimiter,uploadSizeLimiter3h, (req, res) => {
     const operation = logger.startOperation('آپلود تصویر', { // ← شروع عملیات
         admin: req.user?.username,
         fileName: req.body.name?.trim() || 'auto_generated'
