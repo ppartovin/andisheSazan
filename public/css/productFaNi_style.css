@@ -1,0 +1,285 @@
+:root {
+			--primary: #C4A97D;
+			--secondary: #3A3A3A;
+			--accent: #C4A97D;
+			--accent-light: #A0845C;
+			--bg: #1A1A1A;
+			--bg-warm: #2A2A2A;
+			--border: #444444;
+			--text: #F0F0F0;
+			--text-light: #B0B0B0;
+		}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+        }
+
+        main {
+            padding: 0 5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product-gallery {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin: 3rem 0 2rem;
+        }
+
+        .product-gallery button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .product-gallery button:hover {
+            background: var(--accent);
+        }
+
+        #product-image {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: var(--bg-warm);
+            border: 1px solid var(--border);
+            border-radius: 0;
+        }
+
+        .product-header {
+            text-align: center;
+            margin: 2rem 0 2.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        .product-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .product-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+
+        .product-shops {
+            margin: 2rem 0;
+        }
+
+        .shops {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .shop {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1.2rem;
+            transition: background .2s, transform .2s;
+        }
+
+        .shop:hover {
+            background: var(--bg-warm);
+            transform: translateY(-3px);
+        }
+
+        .shop img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .shop span {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .product-description {
+            margin: 2.5rem 0;
+        }
+
+        .product-description h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .description-wrapper {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 2rem;
+        }
+
+        #short-desc,
+        #full-desc p {
+            font-size: 1rem;
+            color: var(--text);
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        #full-desc {
+            display: none;
+        }
+
+        #more,
+        #less {
+            margin-top: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.8rem;
+            border-radius: 4px;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        #more:hover,
+        #less:hover {
+            background: var(--accent);
+        }
+
+        #less {
+            display: none;
+        }
+
+        .product-features {
+            margin: 2.5rem 0 4rem;
+        }
+
+        .product-features h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        th,
+        td {
+            padding: 0.8rem 1.2rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-warm);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        td {
+            color: var(--text);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 0 2rem;
+            }
+            .product-title {
+                font-size: 2rem;
+            }
+            .product-gallery {
+                flex-direction: row;
+                gap: 1rem;
+            }
+            #product-image {
+                max-width: 280px;
+            }
+            .shops {
+                gap: 0.6rem;
+            }
+            .shop {
+                padding: 0.4rem 0.8rem;
+            }
+            .description-wrapper {
+                padding: 1.2rem;
+            }
+            table {
+                font-size: 0.9rem;
+            }
+            th,
+            td {
+                padding: 0.5rem 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            main {
+                padding: 0 1rem;
+            }
+            .product-title {
+                font-size: 1.5rem;
+            }
+            .product-gallery {
+                flex-wrap: wrap;
+                gap: 0.8rem;
+            }
+            .product-gallery button {
+                padding: 0.4rem 0.8rem;
+                font-size: 1rem;
+            }
+            #product-image {
+                max-width: 200px;
+            }
+            .shops {
+                flex-direction: column;
+                align-items: center;
+            }
+            .shop {
+                width: 100%;
+                justify-content: center;
+            }
+            .description-wrapper {
+                padding: 0.8rem;
+            }
+            #short-desc,
+            #full-desc p {
+                font-size: 0.9rem;
+            }
+        }
