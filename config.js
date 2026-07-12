@@ -5,6 +5,7 @@
 require('dotenv').config();
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const { logger } = require('./logger'); // ← اضافه کردن logger
 
 // ==============================
 // PATHS & CONSTANTS
@@ -46,8 +47,13 @@ const jsonDepthVerify = (req, res, buf) => {
     }
     
     if (maxDepth > 10) {
-        // اینجا می‌تونی لاگ کنی (اختیاری)
-        console.warn(`⚠️ JSON depth exceeded: ${maxDepth} for ${req.method} ${req.path}`);
+        // ✅ تبدیل به Winston
+        logger.warn(`JSON depth exceeded: ${maxDepth}`, {
+            method: req.method,
+            path: req.path,
+            ip: req.ip,
+            maxDepth
+        });
         throw new Error('JSON depth exceeds limit');
     }
 };
@@ -63,7 +69,13 @@ const limiterPerMinute = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res, next, options) => {
-        console.warn(`⚠️ Rate limit exceeded (per minute): ${req.ip} - ${req.method} ${req.path}`);
+        // ✅ تبدیل به Winston
+        logger.warn(`Rate limit exceeded (per minute)`, {
+            ip: req.ip,
+            method: req.method,
+            path: req.path,
+            userAgent: req.headers['user-agent']
+        });
         res.status(options.statusCode).json(options.message);
     }
 });
@@ -75,7 +87,13 @@ const limiterPer30Minutes = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res, next, options) => {
-        console.warn(`⚠️ Rate limit exceeded (per 30 min): ${req.ip} - ${req.method} ${req.path}`);
+        // ✅ تبدیل به Winston
+        logger.warn(`Rate limit exceeded (per 30 min)`, {
+            ip: req.ip,
+            method: req.method,
+            path: req.path,
+            userAgent: req.headers['user-agent']
+        });
         res.status(options.statusCode).json(options.message);
     }
 });
@@ -88,7 +106,14 @@ const loginLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res, next, options) => {
-        console.warn(`⚠️ Login rate limit exceeded: ${req.ip} - ${req.body?.username || 'unknown'}`);
+        // ✅ تبدیل به Winston
+        logger.warn(`Login rate limit exceeded`, {
+            ip: req.ip,
+            username: req.body?.username || 'unknown',
+            method: req.method,
+            path: req.path,
+            userAgent: req.headers['user-agent']
+        });
         res.status(options.statusCode).json(options.message);
     }
 });

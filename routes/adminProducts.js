@@ -4,11 +4,11 @@ const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
-const { logger } = require('../logger'); // ← اضافه کردن logger
+const { logger } = require('../logger');
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
-    logger.error('JWT_SECRET is not defined in environment variables'); // ← تبدیل به logger
+    logger.error('JWT_SECRET is not defined in environment variables');
     process.exit(1);
 }
 
@@ -28,7 +28,7 @@ const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return {}; // ✅ آبجکت خالی
+            return {};
         }
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -38,7 +38,7 @@ const readJsonFile = async (filePath) => {
     } catch (err) {
         if (err.code === 'ENOENT') {
             logger.warn(`فایل محصولات یافت نشد: ${filePath}`);
-            return {}; // ✅ آبجکت خالی
+            return {};
         }
         logger.error(`JSON نامعتبر در فایل محصولات: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
@@ -49,7 +49,7 @@ const writeJsonFile = async (filePath, data) => {
     try {
         await writeFile(filePath, JSON.stringify(data, null, 2));
     } catch (err) {
-        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message });
         throw new Error(`Failed to write file: ${filePath}`);
     }
 };
@@ -90,20 +90,20 @@ const checkToken = (req, res, next) => {
     try {
         const token = req.cookies?.adminToken;
         if (!token) {
-            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت محصولات بدون توکن'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت محصولات بدون توکن');
             return res.redirect('/admin/login');
         }
 
         const decoded = verifyToken(token);
         if (!decoded) {
-            logger.withRequest(req, 'توکن نامعتبر در مدیریت محصولات'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'توکن نامعتبر در مدیریت محصولات');
             return res.redirect('/admin/login');
         }
 
         req.user = decoded;
         next();
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت محصولات'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت محصولات');
         res.clearCookie('adminToken');
         res.redirect('/admin/login');
     }
@@ -114,9 +114,58 @@ const checkToken = (req, res, next) => {
 // ==============================
 
 const isValidPrice = (price) => {
-    if (!price) return true; // قیمت اختیاری است
+    if (!price) return true;
     const num = parseFloat(price.replace(/,/g, ''));
     return !isNaN(num) && num >= 0;
+};
+
+// ✅ تابع جدید برای Sanitize
+const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return '';
+    return escapeHtml(input.trim());
+};
+
+// ✅ تابع جدید برای اعتبارسنجی shops
+const validateShops = (shops) => {
+    const MAX_SHOPS = 20;
+    if (shops.length > MAX_SHOPS) {
+        return { valid: false, error: `حداکثر ${MAX_SHOPS} فروشگاه مجاز است` };
+    }
+    
+    for (const shop of shops) {
+        if (shop.name && shop.name.length > 100) {
+            return { valid: false, error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' };
+        }
+        if (shop.link && shop.link.length > 500) {
+            return { valid: false, error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' };
+        }
+        if (shop.image && shop.image.length > 500) {
+            return { valid: false, error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' };
+        }
+    }
+    
+    return { valid: true };
+};
+
+// ✅ تابع جدید برای اعتبارسنجی properties
+const validateProperties = (properties) => {
+    const MAX_PROPERTIES = 30;
+    const keys = Object.keys(properties);
+    
+    if (keys.length > MAX_PROPERTIES) {
+        return { valid: false, error: `حداکثر ${MAX_PROPERTIES} ویژگی مجاز است` };
+    }
+    
+    for (const [key, value] of Object.entries(properties)) {
+        if (key.length > 100) {
+            return { valid: false, error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' };
+        }
+        if (value.length > 500) {
+            return { valid: false, error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' };
+        }
+    }
+    
+    return { valid: true };
 };
 
 // ==============================
@@ -125,7 +174,7 @@ const isValidPrice = (price) => {
 
 // List all products
 router.get('/', checkToken, async (req, res) => {
-    const operation = logger.startOperation('بارگذاری لیست محصولات', { // ← شروع عملیات
+    const operation = logger.startOperation('بارگذاری لیست محصولات', {
         admin: req.user?.username,
         action: 'list_products'
     });
@@ -141,13 +190,13 @@ router.get('/', checkToken, async (req, res) => {
             isShowcase: showcaseCodes.includes(item.unique_code)
         }));
 
-        logger.info(`لیست محصولات بارگذاری شد: ${products.length} محصول`); // ← لاگ اطلاعات
-        operation.end('success', { productCount: products.length }); // ← پایان موفق
+        logger.info(`لیست محصولات بارگذاری شد: ${products.length} محصول`);
+        operation.end('success', { productCount: products.length });
 
         res.render('adminPanel/adminProducts', { products });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست محصولات'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست محصولات');
+        operation.end('failed', { error: err.message });
         res.status(500).render('err', { message: 'خطا در بارگذاری لیست محصولات' });
     }
 });
@@ -155,36 +204,36 @@ router.get('/', checkToken, async (req, res) => {
 // Show add form
 router.get('/add', checkToken, async (req, res) => {
     try {
-        logger.withRequest(req, `دسترسی به فرم افزودن محصول توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
+        logger.withRequest(req, `دسترسی به فرم افزودن محصول توسط: ${req.user?.username}`);
         res.render('adminPanel/adminProductsAdd', { error: null });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن محصول'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن محصول');
         res.status(500).render('err');
     }
 });
 
 // Add new product
 router.post('/add', checkToken, async (req, res) => {
-    const operation = logger.startOperation('افزودن محصول جدید', { // ← شروع عملیات
+    const operation = logger.startOperation('افزودن محصول جدید', {
         admin: req.user?.username,
         title: req.body.title?.trim()?.substring(0, 50)
     });
 
     try {
-        logger.debug('داده‌های دریافتی برای محصول جدید', { body: req.body }); // ← لاگ دیباگ
+        logger.debug('داده‌های دریافتی برای محصول جدید', { body: req.body });
 
         const { title, subtitle, price, description } = req.body;
 
         // اعتبارسنجی عنوان
         if (!title || title.trim() === '') {
-            logger.withRequest(req, 'تلاش برای افزودن محصول بدون عنوان'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'missing_title' }); // ← پایان ناموفق
+            logger.withRequest(req, 'تلاش برای افزودن محصول بدون عنوان');
+            operation.end('failed', { reason: 'missing_title' });
             return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
         }
 
         if (title.length > 200) {
-            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
+            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`);
+            operation.end('failed', { reason: 'title_too_long' });
             return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' });
         }
 
@@ -195,33 +244,102 @@ router.post('/add', checkToken, async (req, res) => {
         const cleanedImages = imageArray.filter(img => img && img.trim()).map(img => img.trim());
 
         // ==============================
-        // پردازش فروشگاه‌ها
+        // پردازش فروشگاه‌ها (با Sanitize و اعتبارسنجی)
         // ==============================
         const shops = [];
         const shopNames = req.body.shop_name || [];
         const shopLinks = req.body.shop_link || [];
         const shopImages = req.body.shop_image || [];
 
+        // ✅ اعتبارسنجی تعداد فروشگاه‌ها
+        if (shopNames.length > 20) {
+            logger.withRequest(req, `تعداد فروشگاه‌ها بیشتر از حد مجاز: ${shopNames.length}`);
+            operation.end('failed', { reason: 'too_many_shops' });
+            return res.render('adminPanel/adminProductsAdd', { 
+                error: 'حداکثر ۲۰ فروشگاه مجاز است' 
+            });
+        }
+
         for (let i = 0; i < shopNames.length; i++) {
             if (shopNames[i] && shopNames[i].trim()) {
+                // ✅ Sanitize کامل
+                const name = sanitizeInput(shopNames[i]);
+                const link = sanitizeInput(shopLinks[i] || '');
+                const image = sanitizeInput(shopImages[i] || '');
+                
+                // ✅ اعتبارسنجی طول
+                if (name.length > 100) {
+                    logger.withRequest(req, `نام فروشگاه خیلی طولانی است: ${name.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_name_too_long' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (link.length > 500) {
+                    logger.withRequest(req, `لینک فروشگاه خیلی طولانی است: ${link.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_link_too_long' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (image.length > 500) {
+                    logger.withRequest(req, `آدرس تصویر فروشگاه خیلی طولانی است: ${image.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_image_too_long' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
                 shops.push({
-                    name: shopNames[i].trim().replace(/[،,]\s*$/, ''),
-                    link: shopLinks[i]?.trim().replace(/[،,]\s*$/, '') || '',
-                    image: shopImages[i]?.trim().replace(/[،,]\s*$/, '') || ''
+                    name: name,
+                    link: link,
+                    image: image
                 });
             }
         }
 
         // ==============================
-        // پردازش ویژگی‌ها
+        // پردازش ویژگی‌ها (با Sanitize و اعتبارسنجی)
         // ==============================
         const properties = {};
         const propKeys = req.body.prop_key || [];
         const propValues = req.body.prop_value || [];
 
+        // ✅ اعتبارسنجی تعداد ویژگی‌ها
+        if (propKeys.length > 30) {
+            logger.withRequest(req, `تعداد ویژگی‌ها بیشتر از حد مجاز: ${propKeys.length}`);
+            operation.end('failed', { reason: 'too_many_properties' });
+            return res.render('adminPanel/adminProductsAdd', { 
+                error: 'حداکثر ۳۰ ویژگی مجاز است' 
+            });
+        }
+
         for (let i = 0; i < propKeys.length; i++) {
             if (propKeys[i] && propKeys[i].trim()) {
-                properties[propKeys[i].trim()] = propValues[i]?.trim() || '';
+                // ✅ Sanitize کامل
+                const key = sanitizeInput(propKeys[i]);
+                const value = sanitizeInput(propValues[i] || '');
+                
+                // ✅ اعتبارسنجی طول
+                if (key.length > 100) {
+                    logger.withRequest(req, `کلید ویژگی خیلی طولانی است: ${key.length} کاراکتر`);
+                    operation.end('failed', { reason: 'property_key_too_long' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (value.length > 500) {
+                    logger.withRequest(req, `مقدار ویژگی خیلی طولانی است: ${value.length} کاراکتر`);
+                    operation.end('failed', { reason: 'property_value_too_long' });
+                    return res.render('adminPanel/adminProductsAdd', { 
+                        error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                properties[key] = value;
             }
         }
 
@@ -236,37 +354,38 @@ router.post('/add', checkToken, async (req, res) => {
         const uniqueCode = generateUniqueCode();
 
         const newProduct = {
-            title: title.trim(),
-            subtitle: subtitle?.trim() || '',
+            title: sanitizeInput(title),
+            subtitle: sanitizeInput(subtitle || ''),
             price: price?.trim() || '',
-            description: description?.trim() || '',
+            description: sanitizeInput(description || ''),
             image: cleanedImages,
             shops: shops,
             properties: properties,
             unique_code: uniqueCode
         };
 
-        logger.debug('محصول جدید ساخته شد', { product: newProduct }); // ← لاگ دیباگ
+        logger.debug('محصول جدید ساخته شد', { product: newProduct });
 
         products[nextId] = newProduct;
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول جدید اضافه شد: "${title.trim()}" (ID: ${nextId}, کد: ${uniqueCode}) توسط ${req.user?.username}`); // ← لاگ موفقیت
+        logger.info(`✅ محصول جدید اضافه شد: "${title.trim()}" (ID: ${nextId}, کد: ${uniqueCode}) توسط ${req.user?.username}`);
         operation.end('success', { 
             productId: nextId, 
             uniqueCode, 
             title: title.trim().substring(0, 50),
             shopCount: shops.length,
-            imageCount: cleanedImages.length
-        }); // ← پایان موفق
+            imageCount: cleanedImages.length,
+            propertyCount: Object.keys(properties).length
+        });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در افزودن محصول'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
+        logger.errorWithRequest(req, err, 'خطا در افزودن محصول');
+        operation.end('failed', { error: err.message });
         res.status(500).render('err', { message: 'خطا در افزودن محصول' });
     }
 });
@@ -277,7 +396,7 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
         
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`);
             return res.redirect('/admin/products');
         }
 
@@ -285,24 +404,24 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const product = products[productId];
 
         if (!product) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`);
             return res.redirect('/admin/products');
         }
 
-        logger.withRequest(req, `دسترسی به فرم ویرایش محصول ${productId} (${product.title}) توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
+        logger.withRequest(req, `دسترسی به فرم ویرایش محصول ${productId} (${product.title}) توسط: ${req.user?.username}`);
         res.render('adminPanel/adminProductsEdit', { 
             product: { id: productId, ...product } 
         });
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش محصول ${req.params.id}`);
         res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
     }
 });
 
 // Update product
 router.post('/edit/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('ویرایش محصول', { // ← شروع عملیات
+    const operation = logger.startOperation('ویرایش محصول', {
         admin: req.user?.username,
         productId: req.params.id,
         title: req.body.title?.trim()?.substring(0, 50)
@@ -313,22 +432,22 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const { title, subtitle, price, description } = req.body;
 
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/products');
         }
 
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'product_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`);
+            operation.end('failed', { reason: 'product_not_found' });
             return res.redirect('/admin/products');
         }
 
         if (title && title.length > 200) {
-            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
+            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`);
+            operation.end('failed', { reason: 'title_too_long' });
             return res.render('adminPanel/adminProductsEdit', { 
                 product: { id: productId, ...products[productId] },
                 error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد'
@@ -336,46 +455,151 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         }
 
         if (price && !isValidPrice(price)) {
-            logger.withRequest(req, `قیمت نامعتبر: ${price}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_price' }); // ← پایان ناموفق
+            logger.withRequest(req, `قیمت نامعتبر: ${price}`);
+            operation.end('failed', { reason: 'invalid_price' });
             return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
                 error: 'قیمت باید یک عدد معتبر باشد'
             });
         }
 
+        // ==============================
+        // پردازش فروشگاه‌ها در ویرایش (با Sanitize و اعتبارسنجی)
+        // ==============================
+        const shops = [];
+        const shopNames = req.body.shop_name || [];
+        const shopLinks = req.body.shop_link || [];
+        const shopImages = req.body.shop_image || [];
+
+        if (shopNames.length > 20) {
+            logger.withRequest(req, `تعداد فروشگاه‌ها بیشتر از حد مجاز در ویرایش: ${shopNames.length}`);
+            operation.end('failed', { reason: 'too_many_shops' });
+            return res.render('adminPanel/adminProductsEdit', { 
+                product: { id: productId, ...products[productId] },
+                error: 'حداکثر ۲۰ فروشگاه مجاز است' 
+            });
+        }
+
+        for (let i = 0; i < shopNames.length; i++) {
+            if (shopNames[i] && shopNames[i].trim()) {
+                const name = sanitizeInput(shopNames[i]);
+                const link = sanitizeInput(shopLinks[i] || '');
+                const image = sanitizeInput(shopImages[i] || '');
+                
+                if (name.length > 100) {
+                    logger.withRequest(req, `نام فروشگاه خیلی طولانی است در ویرایش: ${name.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_name_too_long' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (link.length > 500) {
+                    logger.withRequest(req, `لینک فروشگاه خیلی طولانی است در ویرایش: ${link.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_link_too_long' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (image.length > 500) {
+                    logger.withRequest(req, `آدرس تصویر فروشگاه خیلی طولانی است در ویرایش: ${image.length} کاراکتر`);
+                    operation.end('failed', { reason: 'shop_image_too_long' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                shops.push({
+                    name: name,
+                    link: link,
+                    image: image
+                });
+            }
+        }
+
+        // ==============================
+        // پردازش ویژگی‌ها در ویرایش (با Sanitize و اعتبارسنجی)
+        // ==============================
+        const properties = {};
+        const propKeys = req.body.prop_key || [];
+        const propValues = req.body.prop_value || [];
+
+        if (propKeys.length > 30) {
+            logger.withRequest(req, `تعداد ویژگی‌ها بیشتر از حد مجاز در ویرایش: ${propKeys.length}`);
+            operation.end('failed', { reason: 'too_many_properties' });
+            return res.render('adminPanel/adminProductsEdit', { 
+                product: { id: productId, ...products[productId] },
+                error: 'حداکثر ۳۰ ویژگی مجاز است' 
+            });
+        }
+
+        for (let i = 0; i < propKeys.length; i++) {
+            if (propKeys[i] && propKeys[i].trim()) {
+                const key = sanitizeInput(propKeys[i]);
+                const value = sanitizeInput(propValues[i] || '');
+                
+                if (key.length > 100) {
+                    logger.withRequest(req, `کلید ویژگی خیلی طولانی است در ویرایش: ${key.length} کاراکتر`);
+                    operation.end('failed', { reason: 'property_key_too_long' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                if (value.length > 500) {
+                    logger.withRequest(req, `مقدار ویژگی خیلی طولانی است در ویرایش: ${value.length} کاراکتر`);
+                    operation.end('failed', { reason: 'property_value_too_long' });
+                    return res.render('adminPanel/adminProductsEdit', { 
+                        product: { id: productId, ...products[productId] },
+                        error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    });
+                }
+                
+                properties[key] = value;
+            }
+        }
+
         const oldTitle = products[productId].title;
 
         products[productId] = {
             ...products[productId],
-            title: title?.trim() || products[productId].title,
-            subtitle: subtitle?.trim() || products[productId].subtitle || '',
+            title: sanitizeInput(title || products[productId].title),
+            subtitle: sanitizeInput(subtitle || products[productId].subtitle || ''),
             price: price?.trim() || products[productId].price || '',
-            description: description?.trim() || products[productId].description || ''
+            description: sanitizeInput(description || products[productId].description || ''),
+            shops: shops,
+            properties: properties
         };
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول ویرایش شد: "${oldTitle}" → "${title}" (ID: ${productId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
+        logger.info(`✅ محصول ویرایش شد: "${oldTitle}" → "${title}" (ID: ${productId}) توسط ${req.user?.username}`);
         operation.end('success', { 
             productId, 
             oldTitle: oldTitle.substring(0, 50), 
-            newTitle: title?.substring(0, 50) || oldTitle.substring(0, 50) 
-        }); // ← پایان موفق
+            newTitle: title?.substring(0, 50) || oldTitle.substring(0, 50),
+            shopCount: shops.length,
+            propertyCount: Object.keys(properties).length
+        });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در ویرایش محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
+        logger.errorWithRequest(req, err, `خطا در ویرایش محصول ${req.params.id}`);
+        operation.end('failed', { error: err.message });
         res.status(500).render('err', { message: 'خطا در ویرایش محصول' });
     }
 });
 
 // Delete product
 router.get('/delete/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('حذف محصول', { // ← شروع عملیات
+    const operation = logger.startOperation('حذف محصول', {
         admin: req.user?.username,
         productId: req.params.id
     });
@@ -384,16 +608,16 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
 
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای حذف: ${productId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `شناسه محصول نامعتبر برای حذف: ${productId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/products');
         }
 
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای حذف یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'product_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `محصول با شناسه ${productId} برای حذف یافت نشد`);
+            operation.end('failed', { reason: 'product_not_found' });
             return res.redirect('/admin/products');
         }
 
@@ -412,14 +636,14 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول حذف شد: "${deletedTitle}" (ID: ${productId}, کد: ${uniqueCode}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { productId, title: deletedTitle.substring(0, 50), uniqueCode }); // ← پایان موفق
+        logger.info(`✅ محصول حذف شد: "${deletedTitle}" (ID: ${productId}, کد: ${uniqueCode}) توسط ${req.user?.username}`);
+        operation.end('success', { productId, title: deletedTitle.substring(0, 50), uniqueCode });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در حذف محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
+        logger.errorWithRequest(req, err, `خطا در حذف محصول ${req.params.id}`);
+        operation.end('failed', { error: err.message });
         res.status(500).render('err', { message: 'خطا در حذف محصول' });
     }
 });
@@ -429,7 +653,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
 // ==============================
 
 router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
-    const operation = logger.startOperation('تغییر وضعیت ویترین', { // ← شروع عملیات
+    const operation = logger.startOperation('تغییر وضعیت ویترین', {
         admin: req.user?.username,
         uniqueCode: req.params.uniqueCode
     });
@@ -438,12 +662,11 @@ router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
         const uniqueCode = req.params.uniqueCode;
 
         if (!uniqueCode) {
-            logger.withRequest(req, 'کد یکتا برای تغییر وضعیت ویترین دریافت نشد'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'missing_unique_code' }); // ← پایان ناموفق
+            logger.withRequest(req, 'کد یکتا برای تغییر وضعیت ویترین دریافت نشد');
+            operation.end('failed', { reason: 'missing_unique_code' });
             return res.redirect('/admin/products');
         }
 
-        // خواندن index_data.json
         let indexData;
         try {
             indexData = await readJsonFile(INDEX_DATA_PATH);
@@ -457,25 +680,23 @@ router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
         let action;
 
         if (index > -1) {
-            // حذف از ویترین
             indexData.top_products.splice(index, 1);
             action = 'removed';
         } else {
-            // افزودن به ویترین
             indexData.top_products.push(uniqueCode);
             action = 'added';
         }
 
         await writeJsonFile(INDEX_DATA_PATH, indexData);
 
-        logger.info(`✅ وضعیت ویترین برای کد ${uniqueCode}: ${action === 'added' ? 'افزوده شد' : 'حذف شد'} توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { uniqueCode, action }); // ← پایان موفق
+        logger.info(`✅ وضعیت ویترین برای کد ${uniqueCode}: ${action === 'added' ? 'افزوده شد' : 'حذف شد'} توسط ${req.user?.username}`);
+        operation.end('success', { uniqueCode, action });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در تغییر وضعیت ویترین برای کد ${req.params.uniqueCode}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
+        logger.errorWithRequest(req, err, `خطا در تغییر وضعیت ویترین برای کد ${req.params.uniqueCode}`);
+        operation.end('failed', { error: err.message });
         res.status(500).render('err', { message: 'خطا در تغییر وضعیت ویترین' });
     }
 });
