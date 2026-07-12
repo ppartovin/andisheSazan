@@ -85,13 +85,16 @@ const renderPage = (req, res, pageName, lang, data = {}) => {
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
+        if (!content || content.trim() === '') {
+            return {}; // ✅ آبجکت خالی
+        }
         return JSON.parse(content);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.error(`فایل یافت نشد: ${filePath}`); // ← لاگ خطا
-            throw new Error(`File not found: ${filePath}`);
+            logger.error(`فایل یافت نشد: ${filePath}`);
+            return {}; // ✅ آبجکت خالی
         }
-        logger.error(`JSON نامعتبر در فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا با جزئیات
+        logger.error(`JSON نامعتبر در فایل: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };

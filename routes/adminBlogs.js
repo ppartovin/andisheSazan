@@ -27,20 +27,19 @@ const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return {}; // یا [] بسته به نیاز
+            return {}; // ✅ آبجکت خالی
         }
         const parsed = JSON.parse(content);
-        // اگر آرایه بود و آبجکت مد نظر است، تبدیل کن
         if (Array.isArray(parsed)) {
             return parsed;
         }
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل بلاگ‌ها یافت نشد: ${filePath}`); // ← لاگ هشدار
-            return {}; // فایل وجود ندارد
+            logger.warn(`فایل بلاگ‌ها یافت نشد: ${filePath}`);
+            return {}; // ✅ آبجکت خالی
         }
-        logger.error(`JSON نامعتبر در فایل بلاگ‌ها: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`JSON نامعتبر در فایل بلاگ‌ها: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };

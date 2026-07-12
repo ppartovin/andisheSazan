@@ -27,7 +27,7 @@ const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return {}; // فایل خالی → آبجکت خالی
+            return {}; // ✅ آبجکت خالی
         }
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -36,10 +36,10 @@ const readJsonFile = async (filePath) => {
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل سوالات متداول یافت نشد: ${filePath}`); // ← لاگ هشدار
-            return {}; // فایل وجود ندارد → آبجکت خالی
+            logger.warn(`فایل سوالات متداول یافت نشد: ${filePath}`);
+            return {}; // ✅ آبجکت خالی
         }
-        logger.error(`JSON نامعتبر در فایل سوالات متداول: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`JSON نامعتبر در فایل سوالات متداول: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };

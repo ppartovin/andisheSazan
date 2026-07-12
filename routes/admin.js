@@ -71,15 +71,15 @@ const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return []; // فایل خالی → آرایه خالی
+            return []; // ✅ آرایه خالی
         }
         return JSON.parse(content);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل ادمین‌ها یافت نشد: ${filePath}`); // ← لاگ هشدار
-            return []; // فایل وجود ندارد → آرایه خالی
+            logger.warn(`فایل ادمین‌ها یافت نشد: ${filePath}`);
+            return []; // ✅ آرایه خالی
         }
-        logger.error(`JSON نامعتبر در فایل ادمین‌ها: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`JSON نامعتبر در فایل ادمین‌ها: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
