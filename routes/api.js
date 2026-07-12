@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { readFile } = require('fs').promises;
 const path = require('path');
+const { logger } = require('../logger'); // ← اضافه کردن logger
 
 // ==============================
 // CONSTANTS
@@ -28,8 +29,10 @@ const readJsonFile = async (filePath) => {
         return JSON.parse(content);
     } catch (err) {
         if (err.code === 'ENOENT') {
+            logger.error(`فایل یافت نشد: ${filePath}`); // ← لاگ خطا
             throw new Error(`File not found: ${filePath}`);
         }
+        logger.error(`JSON نامعتبر در فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
@@ -40,9 +43,17 @@ const readJsonFile = async (filePath) => {
 
 // API: Products (paginated)
 router.get('/products/:page/:lang', async (req, res) => {
+    const operation = logger.startOperation('دریافت محصولات از API', { // ← شروع عملیات
+        page: req.params.page,
+        lang: req.params.lang,
+        endpoint: '/api/products'
+    });
+
     try {
         const page = parseInt(req.params.page) || 1;
         if (isNaN(page) || page < 1) {
+            logger.withRequest(req, `شماره صفحه نامعتبر در API محصولات: ${req.params.page}`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'invalid_page' }); // ← پایان ناموفق
             return res.status(400).json({ 
                 error: 'Invalid page number', 
                 message: 'شماره صفحه نامعتبر است' 
@@ -61,6 +72,8 @@ router.get('/products/:page/:lang', async (req, res) => {
         const allProducts = Object.values(await readJsonFile(productsPath));
         
         if (!allProducts || allProducts.length === 0) {
+            logger.withRequest(req, `هیچ محصولی برای زبان ${lang} یافت نشد`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'no_products', lang }); // ← پایان ناموفق
             return res.status(404).json({ 
                 error: 'No products found',
                 products: [],
@@ -79,6 +92,15 @@ router.get('/products/:page/:lang', async (req, res) => {
                 link: `/product/${start + index + 1}/${lang}`
             }));
 
+        logger.info(`API محصولات: ${results.length} محصول از ${allProducts.length} کل برای صفحه ${page} (زبان: ${lang})`); // ← لاگ اطلاعات
+        operation.end('success', { 
+            page, 
+            lang, 
+            returned: results.length, 
+            total: allProducts.length,
+            hasMore: end < allProducts.length
+        }); // ← پایان موفق
+
         res.json({
             products: results,
             hasMore: end < allProducts.length,
@@ -86,7 +108,8 @@ router.get('/products/:page/:lang', async (req, res) => {
             page: page
         });
     } catch (err) {
-        console.error('API Products error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در API محصولات'); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).json({ 
             error: 'Server error',
             message: 'خطا در بارگذاری محصولات'
@@ -96,9 +119,17 @@ router.get('/products/:page/:lang', async (req, res) => {
 
 // API: Blogs (paginated)
 router.get('/blogs/:page/:lang', async (req, res) => {
+    const operation = logger.startOperation('دریافت بلاگ‌ها از API', { // ← شروع عملیات
+        page: req.params.page,
+        lang: req.params.lang,
+        endpoint: '/api/blogs'
+    });
+
     try {
         const page = parseInt(req.params.page) || 1;
         if (isNaN(page) || page < 1) {
+            logger.withRequest(req, `شماره صفحه نامعتبر در API بلاگ‌ها: ${req.params.page}`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'invalid_page' }); // ← پایان ناموفق
             return res.status(400).json({ 
                 error: 'Invalid page number', 
                 message: 'شماره صفحه نامعتبر است' 
@@ -117,6 +148,8 @@ router.get('/blogs/:page/:lang', async (req, res) => {
         const blogs = Object.values(await readJsonFile(blogsPath));
         
         if (!blogs || blogs.length === 0) {
+            logger.withRequest(req, `هیچ بلاگی برای زبان ${lang} یافت نشد`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'no_blogs', lang }); // ← پایان ناموفق
             return res.status(404).json({
                 error: 'No blogs found',
                 posts: [],
@@ -134,6 +167,15 @@ router.get('/blogs/:page/:lang', async (req, res) => {
                 link: `/blog/${start + index + 1}/${lang}`
             }));
 
+        logger.info(`API بلاگ‌ها: ${posts.length} بلاگ از ${blogs.length} کل برای صفحه ${page} (زبان: ${lang})`); // ← لاگ اطلاعات
+        operation.end('success', { 
+            page, 
+            lang, 
+            returned: posts.length, 
+            total: blogs.length,
+            hasMore: end < blogs.length
+        }); // ← پایان موفق
+
         res.json({
             page,
             hasMore: end < blogs.length,
@@ -141,7 +183,8 @@ router.get('/blogs/:page/:lang', async (req, res) => {
             posts
         });
     } catch (err) {
-        console.error('API Blogs error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در API بلاگ‌ها'); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).json({ 
             error: 'Server error',
             message: 'خطا در بارگذاری بلاگ‌ها'

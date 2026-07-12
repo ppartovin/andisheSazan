@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // Import required modules
 const express = require('express');
+const { logger, morganMiddleware } = require('./logger');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { readFile } = require('fs').promises;
@@ -18,6 +19,7 @@ const app = express();
 // MIDDLEWARES
 // ==============================
 
+app.use(morganMiddleware);
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb', verify: config.jsonDepthVerify }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
@@ -31,7 +33,6 @@ app.use(compression());
 /* app.use('/admin/login', config.loginLimiter);
 app.use(config.limiterPerMinute);
 app.use(config.limiterPer30Minutes); */
-
 
 // ==============================
 // VIEW ENGINE & STATIC
@@ -51,6 +52,7 @@ app.use('/public', express.static('public',{
 const validateId = (req, res, next) => {
     const id = req.params.id;
     if (!id || isNaN(parseInt(id)) || parseInt(id) <= 0) {
+        logger.withRequest(req, `شناسه نامعتبر: ${id}`); // ← لاگ با اطلاعات درخواست
         return res.status(404).render('404', { message: 'شناسه نامعتبر است' });
     }
     next();
@@ -60,8 +62,9 @@ const validateId = (req, res, next) => {
 // HELPERS
 // ==============================
 
-const renderPage = (req,res, pageName, lang, data = {}) => {
+const renderPage = (req, res, pageName, lang, data = {}) => {
     if (!config.VALID_LANGS.includes(lang)) {
+        logger.withRequest(req, `زبان نامعتبر: ${lang} برای صفحه ${pageName}`); // ← لاگ با اطلاعات درخواست
         return res.redirect(`/${pageName}/fa`);
     }
 
@@ -72,6 +75,7 @@ const renderPage = (req,res, pageName, lang, data = {}) => {
 
     res.render(viewName, { data, lang, theme}, (err, html) => {
         if (err) {
+            logger.errorWithRequest(req, err, `خطا در رندر صفحه ${pageName}`); // ← لاگ خطا با اطلاعات درخواست
             return res.status(404).render('404', { message: 'Page not found' });
         }
         res.send(html);
@@ -84,8 +88,10 @@ const readJsonFile = async (filePath) => {
         return JSON.parse(content);
     } catch (err) {
         if (err.code === 'ENOENT') {
+            logger.error(`فایل یافت نشد: ${filePath}`); // ← لاگ خطا
             throw new Error(`File not found: ${filePath}`);
         }
+        logger.error(`JSON نامعتبر در فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا با جزئیات
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
@@ -99,10 +105,9 @@ const adminRoutes = require('./routes/admin');
 app.use('/admin', adminRoutes);
 
 const apiRoutes = require('./routes/api');
-const { error } = require('console');
 app.use('/api', apiRoutes);
 
-// Redirects
+// Redirects (نیاز به لاگ ندارند)
 app.get('/', (req, res) => res.redirect('/index'));
 app.get('/index', (req, res) => res.redirect('/index/fa'));
 
@@ -112,11 +117,14 @@ app.get('/index', (req, res) => res.redirect('/index/fa'));
 
 // Index page
 app.get('/index/:lang', async (req, res) => {
+    const operation = logger.startOperation('بارگذاری صفحه اصلی', { // ← شروع عملیات
+        lang: req.params.lang
+    });
+
     try {
         const lang = req.params.lang;
         const indexConfig = await readJsonFile(config.PATHS.indexData);
 
-        // Product file paths based on language
         const productsPaths = {
             fa: config.PATHS.productsFa,
             en: config.PATHS.productsEn
@@ -127,9 +135,7 @@ app.get('/index/:lang', async (req, res) => {
         const showcaseCodes = indexConfig.top_products || [];
         const topProducts = [];
 
-        // پیدا کردن محصولات با id
         showcaseCodes.forEach(code => {
-            // پیدا کردن کلید (id) برای هر unique_code
             const entry = Object.entries(allProducts).find(([id, product]) => product.unique_code === code);
             if (entry) {
                 const [id, product] = entry;
@@ -141,14 +147,25 @@ app.get('/index/:lang', async (req, res) => {
         });
 
         const finalProducts = topProducts.slice(0, config.TOP_PRODUCTS_MAX);
-        console.log(finalProducts);
-        renderPage(req,res, 'index', req.params.lang, { topProducts: finalProducts });
+        
+        // دیباگ در محیط توسعه (اختیاری)
+        if (process.env.NODE_ENV !== 'production') {
+            logger.debug(`محصولات برتر: ${finalProducts.length} محصول`, { 
+                products: finalProducts.map(p => p.unique_code) 
+            });
+        }
+
+        renderPage(req, res, 'index', req.params.lang, { topProducts: finalProducts });
+        
+        operation.end('success', { productCount: finalProducts.length }); // ← پایان موفق
     } catch (err) {
-        console.error('Index page error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه اصلی'); // ← لاگ خطا
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در بارگذاری صفحه اصلی' });
     }
 });
 
+// Test error (لاگ خودش توسط Global error handler ثبت میشه)
 app.get('/err', (req, res) => {
     throw new Error('This is a test error');
 });
@@ -157,9 +174,9 @@ app.get('/err', (req, res) => {
 app.get('/aboutus', (req, res) => res.redirect('/aboutus/fa'));
 app.get('/aboutus/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'aboutus', req.params.lang);
+        renderPage(req, res, 'aboutus', req.params.lang);
     } catch (err) {
-        console.error('AboutUs error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه درباره ما');
         res.status(500).render('err');
     }
 });
@@ -168,9 +185,9 @@ app.get('/aboutus/:lang', (req, res) => {
 app.get('/team', (req, res) => res.redirect('/team/fa'));
 app.get('/team/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'team', req.params.lang);
+        renderPage(req, res, 'team', req.params.lang);
     } catch (err) {
-        console.error('Team error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه تیم');
         res.status(500).render('err');
     }
 });
@@ -179,9 +196,9 @@ app.get('/team/:lang', (req, res) => {
 app.get('/wholesale', (req, res) => res.redirect('/wholesale/fa'));
 app.get('/wholesale/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'wholesale', req.params.lang);
+        renderPage(req, res, 'wholesale', req.params.lang);
     } catch (err) {
-        console.error('Wholesale error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه عمده‌فروشی');
         res.status(500).render('err');
     }
 });
@@ -190,9 +207,9 @@ app.get('/wholesale/:lang', (req, res) => {
 app.get('/products', (req, res) => res.redirect('/products/fa'));
 app.get('/products/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'products', req.params.lang);
+        renderPage(req, res, 'products', req.params.lang);
     } catch (err) {
-        console.error('Products listing error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه محصولات');
         res.status(500).render('err');
     }
 });
@@ -201,29 +218,37 @@ app.get('/products/:lang', (req, res) => {
 app.get('/product', (req, res) => res.redirect('/products'));
 app.get('/product/:id', (req, res) => res.redirect(`/product/${req.params.id}/fa`));
 app.get('/product/:id/:lang', validateId, async (req, res) => {
+    const operation = logger.startOperation('بارگذاری محصول', { // ← شروع عملیات
+        productId: req.params.id,
+        lang: req.params.lang
+    });
+
     try {
         const lang = req.params.lang;
 
-        // Product file paths based on language
         const productsPaths = {
             fa: config.PATHS.productsFa,
             en: config.PATHS.productsEn
         };
 
-        // Select appropriate path, default to Persian if language is invalid
         const productsPath = productsPaths[lang] || productsPaths.fa;
-
         const products = await readJsonFile(productsPath);
         const product = products[req.params.id];
 
         if (!product) {
+            logger.withRequest(req, `محصول با شناسه ${req.params.id} یافت نشد`); // ← لاگ با اطلاعات درخواست
             const errorMessage = lang === 'fa' ? 'محصول یافت نشد' : 'Product not found';
+            operation.end('failed', { reason: 'not_found' }); // ← پایان ناموفق
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(req,res, 'product', lang, product);
+        logger.info(`محصول "${product.name}" با شناسه ${req.params.id} بارگذاری شد`); // ← لاگ موفقیت
+        renderPage(req, res, 'product', lang, product);
+        
+        operation.end('success', { productName: product.name }); // ← پایان موفق
     } catch (err) {
-        console.error('Product error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در بارگذاری محصول ${req.params.id}`); // ← لاگ خطا
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         const errorMessage = req.params.lang === 'fa'
             ? 'خطا در بارگذاری محصول'
             : 'Error loading product';
@@ -235,9 +260,9 @@ app.get('/product/:id/:lang', validateId, async (req, res) => {
 app.get('/contact', (req, res) => res.redirect('/contact/fa'));
 app.get('/contact/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'contact', req.params.lang);
+        renderPage(req, res, 'contact', req.params.lang);
     } catch (err) {
-        console.error('Contact error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه تماس');
         res.status(500).render('err');
     }
 });
@@ -246,9 +271,9 @@ app.get('/contact/:lang', (req, res) => {
 app.get('/trusted', (req, res) => res.redirect('/trusted/fa'));
 app.get('/trusted/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'trusted', req.params.lang);
+        renderPage(req, res, 'trusted', req.params.lang);
     } catch (err) {
-        console.error('Trusted error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه مورد اعتماد');
         res.status(500).render('err');
     }
 });
@@ -257,9 +282,9 @@ app.get('/trusted/:lang', (req, res) => {
 app.get('/partnership', (req, res) => res.redirect('/partnership/fa'));
 app.get('/partnership/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'partnership', req.params.lang);
+        renderPage(req, res, 'partnership', req.params.lang);
     } catch (err) {
-        console.error('Partnership error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه مشارکت');
         res.status(500).render('err');
     }
 });
@@ -268,9 +293,9 @@ app.get('/partnership/:lang', (req, res) => {
 app.get('/blogs', (req, res) => res.redirect('/blogs/fa'));
 app.get('/blogs/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'blogs', req.params.lang);
+        renderPage(req, res, 'blogs', req.params.lang);
     } catch (err) {
-        console.error('Blogs listing error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه بلاگ‌ها');
         res.status(500).render('err');
     }
 });
@@ -279,29 +304,37 @@ app.get('/blogs/:lang', (req, res) => {
 app.get('/blog', (req, res) => res.redirect('/blogs'));
 app.get('/blog/:id', (req, res) => res.redirect(`/blog/${req.params.id}/fa`));
 app.get('/blog/:id/:lang', validateId, async (req, res) => {
+    const operation = logger.startOperation('بارگذاری بلاگ', { // ← شروع عملیات
+        blogId: req.params.id,
+        lang: req.params.lang
+    });
+
     try {
         const lang = req.params.lang;
 
-        // مسیرهای فایل بر اساس زبان
         const blogsPaths = {
             fa: config.PATHS.blogsFa,
             en: config.PATHS.blogsEn
         };
 
-        // انتخاب مسیر مناسب، در صورت نامعتبر بودن زبان => فارسی
         const blogsPath = blogsPaths[lang] || blogsPaths.fa;
-
         const blogs = await readJsonFile(blogsPath);
         const blog = blogs[req.params.id];
 
         if (!blog) {
+            logger.withRequest(req, `بلاگ با شناسه ${req.params.id} یافت نشد`); // ← لاگ با اطلاعات درخواست
             const errorMessage = lang === 'fa' ? 'بلاگ یافت نشد' : 'Blog not found';
+            operation.end('failed', { reason: 'not_found' }); // ← پایان ناموفق
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(req,res, 'blog', lang, blog);
+        logger.info(`بلاگ "${blog.title}" با شناسه ${req.params.id} بارگذاری شد`); // ← لاگ موفقیت
+        renderPage(req, res, 'blog', lang, blog);
+        
+        operation.end('success', { blogTitle: blog.title }); // ← پایان موفق
     } catch (err) {
-        console.error('Blog error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در بارگذاری بلاگ ${req.params.id}`); // ← لاگ خطا
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         const errorMessage = req.params.lang === 'fa'
             ? 'خطا در بارگذاری بلاگ'
             : 'Error loading blog';
@@ -312,32 +345,35 @@ app.get('/blog/:id/:lang', validateId, async (req, res) => {
 // FAQ
 app.get('/faq', (req, res) => res.redirect('/faq/fa'));
 app.get('/faq/:lang', async (req, res) => {
-    console.log("test")
+    const operation = logger.startOperation('بارگذاری سوالات متداول', { // ← شروع عملیات
+        lang: req.params.lang
+    });
+
     try {
         const lang = req.params.lang;
-        
-        
-        // مسیرهای فایل بر اساس زبان
+
         const faqsPaths = {
             fa: config.PATHS.faqsFa,
             en: config.PATHS.faqsEn
         };
-        
-        // انتخاب مسیر مناسب، در صورت نامعتبر بودن زبان => فارسی
+
         const faqsPath = faqsPaths[lang] || faqsPaths.fa;
-
-        
-
         const faqs = await readJsonFile(faqsPath);
 
         if (!faqs || Object.keys(faqs).length === 0) {
+            logger.withRequest(req, 'هیچ سوالی یافت نشد'); // ← لاگ با اطلاعات درخواست
             const errorMessage = lang === 'fa' ? 'سوالی یافت نشد' : 'No questions found';
+            operation.end('failed', { reason: 'empty' }); // ← پایان ناموفق
             return res.status(404).render('404', { message: errorMessage });
         }
 
-        renderPage(req,res, 'faq', lang, faqs);
+        logger.info(`تعداد ${Object.keys(faqs).length} سوال بارگذاری شد`); // ← لاگ موفقیت
+        renderPage(req, res, 'faq', lang, faqs);
+        
+        operation.end('success', { questionCount: Object.keys(faqs).length }); // ← پایان موفق
     } catch (err) {
-        console.error('FAQ error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری سوالات متداول'); // ← لاگ خطا
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         const errorMessage = req.params.lang === 'fa' 
             ? 'خطا در بارگذاری سوالات متداول' 
             : 'Error loading frequently asked questions';
@@ -349,9 +385,9 @@ app.get('/faq/:lang', async (req, res) => {
 app.get('/customorder', (req, res) => res.redirect('/customorder/fa'));
 app.get('/customorder/:lang', (req, res) => {
     try {
-        renderPage(req,res, 'customorder', req.params.lang);
+        renderPage(req, res, 'customorder', req.params.lang);
     } catch (err) {
-        console.error('Custom order error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری صفحه سفارش سفارشی');
         res.status(500).render('err');
     }
 });
@@ -362,12 +398,13 @@ app.get('/customorder/:lang', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
+    logger.withRequest(req, 'صفحه درخواستی یافت نشد'); // ← لاگ با اطلاعات درخواست
     res.status(404).render('404', { message: 'صفحه مورد نظر یافت نشد' });
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-    console.error('Global error:', err.stack);
+    logger.errorWithRequest(req, err, 'خطای سراسری در برنامه'); // ← لاگ خطا با اطلاعات کامل
     res.status(500).render('err', { message: 'خطای داخلی سرور' });
 });
 
@@ -376,4 +413,7 @@ app.use((err, req, res, next) => {
 // ==============================
 
 const PORT = config.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    logger.info(`🚀 سرور روی پورت ${PORT} در حالت ${process.env.NODE_ENV || 'development'} اجرا شد`);
+    logger.info(`📁 لاگ‌ها در پوشه logs/ ذخیره می‌شوند`);
+});

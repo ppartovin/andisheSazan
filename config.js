@@ -46,6 +46,8 @@ const jsonDepthVerify = (req, res, buf) => {
     }
     
     if (maxDepth > 10) {
+        // اینجا می‌تونی لاگ کنی (اختیاری)
+        console.warn(`⚠️ JSON depth exceeded: ${maxDepth} for ${req.method} ${req.path}`);
         throw new Error('JSON depth exceeds limit');
     }
 };

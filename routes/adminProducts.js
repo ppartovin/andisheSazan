@@ -4,12 +4,14 @@ const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
+const { logger } = require('../logger'); // ← اضافه کردن logger
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
-    console.error('❌ JWT_SECRET is not defined in environment variables');
+    logger.error('JWT_SECRET is not defined in environment variables'); // ← تبدیل به logger
     process.exit(1);
 }
+
 // ==============================
 // CONSTANTS
 // ==============================
@@ -35,8 +37,10 @@ const readJsonFile = async (filePath) => {
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
+            logger.warn(`فایل محصولات یافت نشد: ${filePath}`); // ← لاگ هشدار
             return {}; // فایل وجود ندارد → آبجکت خالی
         }
+        logger.error(`JSON نامعتبر در فایل محصولات: ${filePath}`, { error: err.message }); // ← لاگ خطا
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
@@ -45,6 +49,7 @@ const writeJsonFile = async (filePath, data) => {
     try {
         await writeFile(filePath, JSON.stringify(data, null, 2));
     } catch (err) {
+        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا
         throw new Error(`Failed to write file: ${filePath}`);
     }
 };
@@ -64,8 +69,6 @@ const generateUniqueCode = () => {
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `PRD-${timestamp}-${random}`;
 };
-
-
 
 // ==============================
 // TOKEN FUNCTIONS
@@ -87,23 +90,28 @@ const checkToken = (req, res, next) => {
     try {
         const token = req.cookies?.adminToken;
         if (!token) {
+            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت محصولات بدون توکن'); // ← لاگ با اطلاعات درخواست
             return res.redirect('/admin/login');
         }
 
         const decoded = verifyToken(token);
         if (!decoded) {
+            logger.withRequest(req, 'توکن نامعتبر در مدیریت محصولات'); // ← لاگ با اطلاعات درخواست
             return res.redirect('/admin/login');
         }
 
         req.user = decoded;
         next();
     } catch (err) {
-        console.error('CheckToken error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت محصولات'); // ← لاگ خطا با اطلاعات درخواست
         res.clearCookie('adminToken');
         res.redirect('/admin/login');
     }
 };
 
+// ==============================
+// VALIDATION HELPERS
+// ==============================
 
 const isValidPrice = (price) => {
     if (!price) return true; // قیمت اختیاری است
@@ -116,8 +124,12 @@ const isValidPrice = (price) => {
 // ==============================
 
 // List all products
-// List all products
 router.get('/', checkToken, async (req, res) => {
+    const operation = logger.startOperation('بارگذاری لیست محصولات', { // ← شروع عملیات
+        admin: req.user?.username,
+        action: 'list_products'
+    });
+
     try {
         const productsObj = await readJsonFile(PRODUCTS_PATH);
         const indexData = await readJsonFile(INDEX_DATA_PATH);
@@ -129,9 +141,13 @@ router.get('/', checkToken, async (req, res) => {
             isShowcase: showcaseCodes.includes(item.unique_code)
         }));
 
+        logger.info(`لیست محصولات بارگذاری شد: ${products.length} محصول`); // ← لاگ اطلاعات
+        operation.end('success', { productCount: products.length }); // ← پایان موفق
+
         res.render('adminPanel/adminProducts', { products });
     } catch (err) {
-        console.error('Products list error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست محصولات'); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در بارگذاری لیست محصولات' });
     }
 });
@@ -139,26 +155,36 @@ router.get('/', checkToken, async (req, res) => {
 // Show add form
 router.get('/add', checkToken, async (req, res) => {
     try {
+        logger.withRequest(req, `دسترسی به فرم افزودن محصول توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
         res.render('adminPanel/adminProductsAdd', { error: null });
     } catch (err) {
-        console.error('Add form error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن محصول'); // ← لاگ خطا با اطلاعات درخواست
         res.status(500).render('err');
     }
 });
 
-//add new product
+// Add new product
 router.post('/add', checkToken, async (req, res) => {
+    const operation = logger.startOperation('افزودن محصول جدید', { // ← شروع عملیات
+        admin: req.user?.username,
+        title: req.body.title?.trim()?.substring(0, 50)
+    });
+
     try {
-        console.log('📦 Received form data:', req.body);
+        logger.debug('داده‌های دریافتی برای محصول جدید', { body: req.body }); // ← لاگ دیباگ
 
         const { title, subtitle, price, description } = req.body;
 
         // اعتبارسنجی عنوان
         if (!title || title.trim() === '') {
+            logger.withRequest(req, 'تلاش برای افزودن محصول بدون عنوان'); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'missing_title' }); // ← پایان ناموفق
             return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
         }
 
         if (title.length > 200) {
+            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
             return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' });
         }
 
@@ -166,7 +192,6 @@ router.post('/add', checkToken, async (req, res) => {
         // پردازش تصاویر (آرایه)
         // ==============================
         const imageArray = req.body.image || [];
-        // حذف مقادیر خالی و trim
         const cleanedImages = imageArray.filter(img => img && img.trim()).map(img => img.trim());
 
         // ==============================
@@ -180,7 +205,7 @@ router.post('/add', checkToken, async (req, res) => {
         for (let i = 0; i < shopNames.length; i++) {
             if (shopNames[i] && shopNames[i].trim()) {
                 shops.push({
-                    name: shopNames[i].trim().replace(/[،,]\s*$/, ''), // حذف کاما اضافی
+                    name: shopNames[i].trim().replace(/[،,]\s*$/, ''),
                     link: shopLinks[i]?.trim().replace(/[،,]\s*$/, '') || '',
                     image: shopImages[i]?.trim().replace(/[،,]\s*$/, '') || ''
                 });
@@ -221,29 +246,38 @@ router.post('/add', checkToken, async (req, res) => {
             unique_code: uniqueCode
         };
 
-        console.log('📦 New product:', newProduct);
+        logger.debug('محصول جدید ساخته شد', { product: newProduct }); // ← لاگ دیباگ
 
         products[nextId] = newProduct;
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
+        logger.info(`✅ محصول جدید اضافه شد: "${title.trim()}" (ID: ${nextId}, کد: ${uniqueCode}) توسط ${req.user?.username}`); // ← لاگ موفقیت
+        operation.end('success', { 
+            productId: nextId, 
+            uniqueCode, 
+            title: title.trim().substring(0, 50),
+            shopCount: shops.length,
+            imageCount: cleanedImages.length
+        }); // ← پایان موفق
+
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error('Add product error:', err.message);
+        logger.errorWithRequest(req, err, 'خطا در افزودن محصول'); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در افزودن محصول' });
     }
 });
-
-
 
 // Show edit form
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
         
-        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
+        if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
+            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`); // ← لاگ با اطلاعات درخواست
             return res.redirect('/admin/products');
         }
 
@@ -251,36 +285,50 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const product = products[productId];
 
         if (!product) {
+            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
             return res.redirect('/admin/products');
         }
 
+        logger.withRequest(req, `دسترسی به فرم ویرایش محصول ${productId} (${product.title}) توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
         res.render('adminPanel/adminProductsEdit', { 
             product: { id: productId, ...product } 
         });
 
     } catch (err) {
-        console.error('Edit form error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
         res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
     }
 });
 
 // Update product
 router.post('/edit/:id', checkToken, async (req, res) => {
+    const operation = logger.startOperation('ویرایش محصول', { // ← شروع عملیات
+        admin: req.user?.username,
+        productId: req.params.id,
+        title: req.body.title?.trim()?.substring(0, 50)
+    });
+
     try {
         const productId = req.params.id;
-        const { title, subtitle, price, description, image } = req.body;
+        const { title, subtitle, price, description } = req.body;
 
-        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
+        if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
+            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
             return res.redirect('/admin/products');
         }
 
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
+            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'product_not_found' }); // ← پایان ناموفق
             return res.redirect('/admin/products');
         }
 
         if (title && title.length > 200) {
+            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
             return res.render('adminPanel/adminProductsEdit', { 
                 product: { id: productId, ...products[productId] },
                 error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد'
@@ -288,52 +336,74 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         }
 
         if (price && !isValidPrice(price)) {
+            logger.withRequest(req, `قیمت نامعتبر: ${price}`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'invalid_price' }); // ← پایان ناموفق
             return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
                 error: 'قیمت باید یک عدد معتبر باشد'
             });
         }
 
+        const oldTitle = products[productId].title;
+
         products[productId] = {
             ...products[productId],
             title: title?.trim() || products[productId].title,
             subtitle: subtitle?.trim() || products[productId].subtitle || '',
             price: price?.trim() || products[productId].price || '',
-            description: description?.trim() || products[productId].description || '',
-            image: image?.trim() || products[productId].image || ''
+            description: description?.trim() || products[productId].description || ''
         };
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
+        logger.info(`✅ محصول ویرایش شد: "${oldTitle}" → "${title}" (ID: ${productId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
+        operation.end('success', { 
+            productId, 
+            oldTitle: oldTitle.substring(0, 50), 
+            newTitle: title?.substring(0, 50) || oldTitle.substring(0, 50) 
+        }); // ← پایان موفق
+
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error('Update product error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در ویرایش محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در ویرایش محصول' });
     }
 });
 
 // Delete product
 router.get('/delete/:id', checkToken, async (req, res) => {
+    const operation = logger.startOperation('حذف محصول', { // ← شروع عملیات
+        admin: req.user?.username,
+        productId: req.params.id
+    });
+
     try {
         const productId = req.params.id;
 
-        if (!productId || isNaN(parseInt(productId))|| !/^\d+$/.test(productId)) {
+        if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
+            logger.withRequest(req, `شناسه محصول نامعتبر برای حذف: ${productId}`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
             return res.redirect('/admin/products');
         }
 
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
+            logger.withRequest(req, `محصول با شناسه ${productId} برای حذف یافت نشد`); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'product_not_found' }); // ← پایان ناموفق
             return res.redirect('/admin/products');
         }
 
+        const deletedTitle = products[productId].title;
+        const uniqueCode = products[productId].unique_code;
+
         // حذف از ویترین اگر وجود داشت
         const indexData = await readJsonFile(INDEX_DATA_PATH);
-        const uniqueCode = products[productId].unique_code;
         if (uniqueCode) {
-            indexData.showcase_products = (indexData.showcase_products || []).filter(code => code !== uniqueCode);
+            indexData.top_products = (indexData.top_products || []).filter(code => code !== uniqueCode);
             await writeJsonFile(INDEX_DATA_PATH, indexData);
         }
 
@@ -342,10 +412,14 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
+        logger.info(`✅ محصول حذف شد: "${deletedTitle}" (ID: ${productId}, کد: ${uniqueCode}) توسط ${req.user?.username}`); // ← لاگ موفقیت
+        operation.end('success', { productId, title: deletedTitle.substring(0, 50), uniqueCode }); // ← پایان موفق
+
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error('Delete product error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در حذف محصول ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در حذف محصول' });
     }
 });
@@ -355,10 +429,17 @@ router.get('/delete/:id', checkToken, async (req, res) => {
 // ==============================
 
 router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
+    const operation = logger.startOperation('تغییر وضعیت ویترین', { // ← شروع عملیات
+        admin: req.user?.username,
+        uniqueCode: req.params.uniqueCode
+    });
+
     try {
         const uniqueCode = req.params.uniqueCode;
 
         if (!uniqueCode) {
+            logger.withRequest(req, 'کد یکتا برای تغییر وضعیت ویترین دریافت نشد'); // ← لاگ با اطلاعات درخواست
+            operation.end('failed', { reason: 'missing_unique_code' }); // ← پایان ناموفق
             return res.redirect('/admin/products');
         }
 
@@ -373,21 +454,28 @@ router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
         indexData.top_products = indexData.top_products || [];
 
         const index = indexData.top_products.indexOf(uniqueCode);
+        let action;
 
         if (index > -1) {
             // حذف از ویترین
             indexData.top_products.splice(index, 1);
+            action = 'removed';
         } else {
             // افزودن به ویترین
             indexData.top_products.push(uniqueCode);
+            action = 'added';
         }
 
         await writeJsonFile(INDEX_DATA_PATH, indexData);
 
+        logger.info(`✅ وضعیت ویترین برای کد ${uniqueCode}: ${action === 'added' ? 'افزوده شد' : 'حذف شد'} توسط ${req.user?.username}`); // ← لاگ موفقیت
+        operation.end('success', { uniqueCode, action }); // ← پایان موفق
+
         res.redirect('/admin/products');
 
     } catch (err) {
-        console.error('Toggle showcase error:', err.message);
+        logger.errorWithRequest(req, err, `خطا در تغییر وضعیت ویترین برای کد ${req.params.uniqueCode}`); // ← لاگ خطا با اطلاعات درخواست
+        operation.end('failed', { error: err.message }); // ← پایان ناموفق
         res.status(500).render('err', { message: 'خطا در تغییر وضعیت ویترین' });
     }
 });
