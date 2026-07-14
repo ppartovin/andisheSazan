@@ -101,6 +101,19 @@ const uploadSizeLimiter = async (req, res, next) => {
         userData.resetTime = now + windowMs;
     }
 
+        // ✅ اضافه شده: چک کردن محدودیت
+    if (userData.totalSize >= maxSize) {
+        logger.warn(`Upload size limit exceeded (1GB per 30 min)`, {
+            ip: req.ip,
+            username: req.user?.username || 'unknown',
+            totalSize: userData.totalSize
+        });
+        return res.status(429).json({
+            error: 'Upload size limit exceeded',
+            message: 'You have exceeded the 1GB upload limit per 30 minutes'
+        });
+    }
+
     req.uploadSizeData = userData;
     req.maxUploadSize = maxSize;
     req.windowMs = windowMs;
@@ -123,6 +136,20 @@ const uploadSizeLimiter3h = async (req, res, next) => {
         userData.totalSize = 0;
         userData.resetTime = now + windowMs;
     }
+
+
+    if (userData.totalSize >= maxSize) {
+        logger.warn(`Upload size limit exceeded (3GB per 3 hours)`, {
+            ip: req.ip,
+            username: req.user?.username || 'unknown',
+            totalSize: userData.totalSize
+        });
+        return res.status(429).json({
+            error: 'Upload size limit exceeded',
+            message: 'You have exceeded the 3GB upload limit per 3 hours'
+        });
+    }
+
 
     req.uploadSizeData3h = userData;
     req.maxUploadSize3h = maxSize;
@@ -373,6 +400,20 @@ router.post('/add', checkToken, uploadCountLimiter, uploadCountLimiter3h, upload
             logger.withRequest(req, 'Attempted to upload without selecting a file');
             operation.end('failed', { reason: 'no_file_selected' });
             return res.render('adminPanel/adminImagesAdd', { error: 'No file selected' });
+        }
+
+        // Update 30-minute tracker
+        if (req.uploadSizeData) {
+            req.uploadSizeData.totalSize += req.file.size;
+            const key = req.user?.username || req.ip;
+            uploadSizeTracker.set(key, req.uploadSizeData);
+        }
+
+        // Update 3-hour tracker
+        if (req.uploadSizeData3h) {
+            req.uploadSizeData3h.totalSize += req.file.size;
+            const key = `${req.user?.username || req.ip}_3h`;
+            uploadSizeTracker.set(key, req.uploadSizeData3h);
         }
 
         // Upload successful
