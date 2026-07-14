@@ -1,33 +1,43 @@
+// ============================================================
+// IMPORTS & DEPENDENCIES
+// ============================================================
+
 const express = require('express');
 const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
-const { logger } = require('../logger'); // ← اضافه کردن logger
+const { logger } = require('../logger');
+
+// ============================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
-    logger.error('JWT_SECRET is not defined in environment variables'); // ← تبدیل به logger
+    logger.error('JWT_SECRET is not defined in environment variables');
     process.exit(1);
 }
-
-// ==============================
-// CONSTANTS
-// ==============================
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const BLOGS_PATH = path.join(DATA_DIR, 'blogs.json');
 
-// ==============================
-// HELPERS
-// ==============================
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 
+/**
+ * Reads and parses a JSON file from the given path
+ * @param {string} filePath - Path to the JSON file
+ * @returns {Promise<Object|Array>} Parsed JSON data or empty object on error
+ * @throws {Error} If JSON is invalid
+ */
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return {}; // ✅ آبجکت خالی
+            return {};
         }
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -36,23 +46,35 @@ const readJsonFile = async (filePath) => {
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل بلاگ‌ها یافت نشد: ${filePath}`);
-            return {}; // ✅ آبجکت خالی
+            logger.warn(`Blogs file not found: ${filePath}`);
+            return {};
         }
-        logger.error(`JSON نامعتبر در فایل بلاگ‌ها: ${filePath}`, { error: err.message });
+        logger.error(`Invalid JSON in blogs file: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
 
+/**
+ * Writes data to a JSON file
+ * @param {string} filePath - Path to the JSON file
+ * @param {Object|Array} data - Data to write
+ * @returns {Promise<void>}
+ * @throws {Error} If write operation fails
+ */
 const writeJsonFile = async (filePath, data) => {
     try {
         await writeFile(filePath, JSON.stringify(data, null, 2));
     } catch (err) {
-        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`Error writing file: ${filePath}`, { error: err.message });
         throw new Error(`Failed to write file: ${filePath}`);
     }
 };
 
+/**
+ * Reindexes items to have sequential numeric keys starting from 1
+ * @param {Object} items - Object with numeric keys
+ * @returns {Object} Reindexed object
+ */
 const reindexItems = (items) => {
     const newItems = {};
     let counter = 1;
@@ -63,10 +85,44 @@ const reindexItems = (items) => {
     return newItems;
 };
 
-// ==============================
-// TOKEN FUNCTIONS
-// ==============================
+/**
+ * Validates if a URL points to a valid image with allowed extension
+ * @param {string} url - Image URL to validate
+ * @returns {boolean} True if URL is valid and has allowed extension
+ */
+const isValidImageUrl = (url) => {
+    if (!url) return true;
 
+    try {
+        const parsed = new URL(url);
+
+        // Only HTTP and HTTPS protocols allowed
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return false;
+        }
+
+        // Allowed file extensions
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const ext = path.extname(parsed.pathname).toLowerCase();
+        if (!validExtensions.includes(ext)) {
+            return false;
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+// ============================================================
+// TOKEN MANAGEMENT
+// ============================================================
+
+/**
+ * Verifies and decodes a JWT token
+ * @param {string} token - JWT token to verify
+ * @returns {Object|null} Decoded token payload or null if invalid
+ */
 const verifyToken = (token) => {
     try {
         return jwt.verify(token, SECRET_KEY);
@@ -75,65 +131,50 @@ const verifyToken = (token) => {
     }
 };
 
-// ==============================
-// MIDDLEWARE: Check Token
-// ==============================
+// ============================================================
+// AUTHENTICATION MIDDLEWARE
+// ============================================================
 
+/**
+ * Middleware to verify admin authentication token
+ * Redirects to login page if token is missing or invalid
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 const checkToken = (req, res, next) => {
     try {
         const token = req.cookies?.adminToken;
         if (!token) {
-            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت بلاگ بدون توکن'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'Attempted to access blog management without token');
             return res.redirect('/admin/login');
         }
 
         const decoded = verifyToken(token);
         if (!decoded) {
-            logger.withRequest(req, 'توکن نامعتبر در مدیریت بلاگ'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'Invalid token in blog management');
             return res.redirect('/admin/login');
         }
 
         req.user = decoded;
         next();
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت بلاگ'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'Error verifying token in blog management');
         res.clearCookie('adminToken');
         res.redirect('/admin/login');
     }
 };
 
+// ============================================================
+// ROUTES - LIST BLOGS
+// ============================================================
 
-const isValidImageUrl = (url) => {
-    if (!url) return true;
-    
-    try {
-        const parsed = new URL(url);
-        
-        // ✅ فقط HTTP و HTTPS مجاز
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-            return false;
-        }
-        
-        // ✅ پسوندهای مجاز
-        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const ext = path.extname(parsed.pathname).toLowerCase();
-        if (!validExtensions.includes(ext)) {
-            return false;
-        }
-        
-        return true;
-    } catch {
-        return false;
-    }
-};
-
-// ==============================
-// ROUTES
-// ==============================
-
-// List all blogs
+/**
+ * GET /admin/blogs
+ * Displays a list of all blog posts
+ */
 router.get('/', checkToken, async (req, res) => {
-    const operation = logger.startOperation('بارگذاری لیست بلاگ‌ها', { // ← شروع عملیات
+    const operation = logger.startOperation('Loading blog list', {
         admin: req.user?.username,
         action: 'list_blogs'
     });
@@ -145,33 +186,43 @@ router.get('/', checkToken, async (req, res) => {
             ...item
         }));
 
-        logger.info(`لیست بلاگ‌ها بارگذاری شد: ${blogs.length} بلاگ`); // ← لاگ اطلاعات
-        operation.end('success', { blogCount: blogs.length }); // ← پایان موفق
+        logger.info(`Blog list loaded: ${blogs.length} blogs`);
+        operation.end('success', { blogCount: blogs.length });
 
         res.render('adminPanel/adminBlogs', { blogs });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست بلاگ‌ها'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در بارگذاری لیست بلاگ‌ها' });
+        logger.errorWithRequest(req, err, 'Error loading blog list');
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error loading blog list' });
     }
 });
 
-// Show add form
+// ============================================================
+// ROUTES - ADD BLOG
+// ============================================================
+
+/**
+ * GET /admin/blogs/add
+ * Displays the add blog form
+ */
 router.get('/add', checkToken, (req, res) => {
     try {
-        logger.withRequest(req, `دسترسی به فرم افزودن بلاگ توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
+        logger.withRequest(req, `Accessing add blog form by: ${req.user?.username}`);
         res.render('adminPanel/adminBlogsAdd', { error: null });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن بلاگ'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'Error loading add blog form');
         res.status(500).render('err');
     }
 });
 
-// Add new blog
+/**
+ * POST /admin/blogs/add
+ * Creates a new blog post
+ */
 router.post('/add', checkToken, async (req, res) => {
-    const operation = logger.startOperation('افزودن بلاگ جدید', { // ← شروع عملیات
+    const operation = logger.startOperation('Adding new blog', {
         admin: req.user?.username,
-        title: req.body.title?.trim()?.substring(0, 50) // فقط بخشی از عنوان برای لاگ
+        title: req.body.title?.trim()?.substring(0, 50)
     });
 
     try {
@@ -179,42 +230,42 @@ router.post('/add', checkToken, async (req, res) => {
         const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
         const writer = escapeHtml(req.body.writer?.trim() || '');
         const date = escapeHtml(req.body.date?.trim() || '');
-        const imageRaw = req.body.image?.trim() || '';  // ← دریافت خام
+        const imageRaw = req.body.image?.trim() || '';
         const text = escapeHtml(req.body.text?.trim() || '');
 
-                // ✅ اعتبارسنجی تصویر (قبل از escape)
+        // Validate image URL
         if (imageRaw && !isValidImageUrl(imageRaw)) {
-            logger.withRequest(req, `آدرس تصویر نامعتبر: ${imageRaw}`);
+            logger.withRequest(req, `Invalid image URL: ${imageRaw}`);
             operation.end('failed', { reason: 'invalid_image' });
-            return res.render('adminPanel/adminBlogsAdd', { 
-                error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.' 
+            return res.render('adminPanel/adminBlogsAdd', {
+                error: 'Invalid image URL. Only jpg, jpeg, png, gif, webp, svg extensions are allowed.'
             });
         }
-/*         const image = escapeHtml(req.body.image?.trim() || '');
- */
+
         const image = imageRaw;
-        // اعتبارسنجی
+
+        // Validate required fields
         if (!title || title.trim() === '') {
-            logger.withRequest(req, 'تلاش برای افزودن بلاگ بدون عنوان'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'missing_title' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminBlogsAdd', { 
-                error: 'عنوان بلاگ الزامی است' 
+            logger.withRequest(req, 'Attempted to add blog without title');
+            operation.end('failed', { reason: 'missing_title' });
+            return res.render('adminPanel/adminBlogsAdd', {
+                error: 'Blog title is required'
             });
         }
 
         if (title.length > 200) {
-            logger.withRequest(req, `عنوان بلاگ خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminBlogsAdd', { 
-                error: 'عنوان بلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد' 
+            logger.withRequest(req, `Blog title too long: ${title.length} characters`);
+            operation.end('failed', { reason: 'title_too_long' });
+            return res.render('adminPanel/adminBlogsAdd', {
+                error: 'Blog title cannot exceed 200 characters'
             });
         }
 
         if (text && text.length > 50000) {
-            logger.withRequest(req, `متن بلاگ خیلی طولانی است: ${text.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'text_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminBlogsAdd', { 
-                error: 'متن بلاگ نباید بیشتر از ۵۰۰۰۰ کاراکتر باشد' 
+            logger.withRequest(req, `Blog text too long: ${text.length} characters`);
+            operation.end('failed', { reason: 'text_too_long' });
+            return res.render('adminPanel/adminBlogsAdd', {
+                error: 'Blog text cannot exceed 50000 characters'
             });
         }
 
@@ -235,26 +286,33 @@ router.post('/add', checkToken, async (req, res) => {
         const reindexedBlogs = reindexItems(blogs);
         await writeJsonFile(BLOGS_PATH, reindexedBlogs);
 
-        logger.info(`✅ بلاگ جدید اضافه شد: "${title}" (ID: ${nextId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { blogId: nextId, title: title.substring(0, 50) }); // ← پایان موفق
+        logger.info(`New blog added: "${title}" (ID: ${nextId}) by ${req.user?.username}`);
+        operation.end('success', { blogId: nextId, title: title.substring(0, 50) });
 
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در افزودن بلاگ'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در افزودن بلاگ' });
+        logger.errorWithRequest(req, err, 'Error adding blog');
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error adding blog' });
     }
 });
 
-// Show edit form
+// ============================================================
+// ROUTES - EDIT BLOG
+// ============================================================
+
+/**
+ * GET /admin/blogs/edit/:id
+ * Displays the edit blog form
+ */
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const blogId = req.params.id;
 
-        // اعتبارسنجی ID
+        // Validate ID format
         if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
-            logger.withRequest(req, `شناسه بلاگ نامعتبر برای ویرایش: ${blogId}`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `Invalid blog ID for editing: ${blogId}`);
             return res.redirect('/admin/blogs');
         }
 
@@ -262,24 +320,27 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const blog = blogs[blogId];
 
         if (!blog) {
-            logger.withRequest(req, `بلاگ با شناسه ${blogId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `Blog with ID ${blogId} not found for editing`);
             return res.redirect('/admin/blogs');
         }
 
-        logger.withRequest(req, `دسترسی به فرم ویرایش بلاگ ${blogId} توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
-        res.render('adminPanel/adminBlogsEdit', { 
-            blog: { id: blogId, ...blog } 
+        logger.withRequest(req, `Accessing edit blog form for ${blogId} by: ${req.user?.username}`);
+        res.render('adminPanel/adminBlogsEdit', {
+            blog: { id: blogId, ...blog }
         });
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش بلاگ ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
+        logger.errorWithRequest(req, err, `Error loading edit blog form for ${req.params.id}`);
+        res.status(500).render('err', { message: 'Error loading edit form' });
     }
 });
 
-// Update blog
+/**
+ * POST /admin/blogs/edit/:id
+ * Updates an existing blog post
+ */
 router.post('/edit/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('ویرایش بلاگ', { // ← شروع عملیات
+    const operation = logger.startOperation('Editing blog', {
         admin: req.user?.username,
         blogId: req.params.id,
         title: req.body.title?.trim()?.substring(0, 50)
@@ -291,55 +352,54 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const subtitle = escapeHtml(req.body.subtitle?.trim() || '');
         const writer = escapeHtml(req.body.writer?.trim() || '');
         const date = escapeHtml(req.body.date?.trim() || '');
-        const imageRaw = req.body.image?.trim() || '';  // ← دریافت خام
+        const imageRaw = req.body.image?.trim() || '';
         const text = escapeHtml(req.body.text?.trim() || '');
 
-        // ✅ اعتبارسنجی تصویر (قبل از escape)
+        // Validate image URL
         if (imageRaw && !isValidImageUrl(imageRaw)) {
-            logger.withRequest(req, `آدرس تصویر نامعتبر در ویرایش: ${imageRaw}`);
+            logger.withRequest(req, `Invalid image URL in edit: ${imageRaw}`);
             operation.end('failed', { reason: 'invalid_image' });
-            
-            // دوباره بلاگ را برای نمایش در فرم بارگذاری کنید
+
             const blogs = await readJsonFile(BLOGS_PATH);
-            return res.render('adminPanel/adminBlogsEdit', { 
+            return res.render('adminPanel/adminBlogsEdit', {
                 blog: { id: blogId, ...blogs[blogId] },
-                error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.'
+                error: 'Invalid image URL. Only jpg, jpeg, png, gif, webp, svg extensions are allowed.'
             });
         }
-/*         const image = escapeHtml(req.body.image?.trim() || '');
- */
+
         const image = imageRaw;
-        // اعتبارسنجی ID
+
+        // Validate ID format
         if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
-            logger.withRequest(req, `شناسه بلاگ نامعتبر برای ویرایش: ${blogId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `Invalid blog ID for editing: ${blogId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/blogs');
         }
 
         const blogs = await readJsonFile(BLOGS_PATH);
 
         if (!blogs[blogId]) {
-            logger.withRequest(req, `بلاگ با شناسه ${blogId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'blog_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `Blog with ID ${blogId} not found for editing`);
+            operation.end('failed', { reason: 'blog_not_found' });
             return res.redirect('/admin/blogs');
         }
 
-        // اعتبارسنجی عنوان
+        // Validate title length
         if (title && title.length > 200) {
-            logger.withRequest(req, `عنوان بلاگ خیلی طولانی است: ${title.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'title_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminBlogsEdit', { 
+            logger.withRequest(req, `Blog title too long: ${title.length} characters`);
+            operation.end('failed', { reason: 'title_too_long' });
+            return res.render('adminPanel/adminBlogsEdit', {
                 blog: { id: blogId, ...blogs[blogId] },
-                error: 'عنوان بلاگ نباید بیشتر از ۲۰۰ کاراکتر باشد'
+                error: 'Blog title cannot exceed 200 characters'
             });
         }
 
         if (text && text.length > 50000) {
-            logger.withRequest(req, `متن بلاگ خیلی طولانی است: ${text.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'text_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminBlogsEdit', { 
+            logger.withRequest(req, `Blog text too long: ${text.length} characters`);
+            operation.end('failed', { reason: 'text_too_long' });
+            return res.render('adminPanel/adminBlogsEdit', {
                 blog: { id: blogId, ...blogs[blogId] },
-                error: 'متن بلاگ نباید بیشتر از ۵۰۰۰۰ کاراکتر باشد'
+                error: 'Blog text cannot exceed 50000 characters'
             });
         }
 
@@ -358,21 +418,28 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const reindexedBlogs = reindexItems(blogs);
         await writeJsonFile(BLOGS_PATH, reindexedBlogs);
 
-        logger.info(`✅ بلاگ ویرایش شد: "${oldTitle}" → "${title}" (ID: ${blogId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { blogId, oldTitle: oldTitle.substring(0, 50), newTitle: title.substring(0, 50) }); // ← پایان موفق
+        logger.info(`Blog updated: "${oldTitle}" → "${title}" (ID: ${blogId}) by ${req.user?.username}`);
+        operation.end('success', { blogId, oldTitle: oldTitle.substring(0, 50), newTitle: title.substring(0, 50) });
 
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در ویرایش بلاگ ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در ویرایش بلاگ' });
+        logger.errorWithRequest(req, err, `Error editing blog ${req.params.id}`);
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error editing blog' });
     }
 });
 
-// Delete blog
+// ============================================================
+// ROUTES - DELETE BLOG
+// ============================================================
+
+/**
+ * GET /admin/blogs/delete/:id
+ * Deletes a blog post
+ */
 router.get('/delete/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('حذف بلاگ', { // ← شروع عملیات
+    const operation = logger.startOperation('Deleting blog', {
         admin: req.user?.username,
         blogId: req.params.id
     });
@@ -380,18 +447,18 @@ router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const blogId = req.params.id;
 
-        // اعتبارسنجی ID
+        // Validate ID format
         if (!blogId || isNaN(parseInt(blogId)) || !/^\d+$/.test(blogId)) {
-            logger.withRequest(req, `شناسه بلاگ نامعتبر برای حذف: ${blogId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `Invalid blog ID for deletion: ${blogId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/blogs');
         }
 
         const blogs = await readJsonFile(BLOGS_PATH);
 
         if (!blogs[blogId]) {
-            logger.withRequest(req, `بلاگ با شناسه ${blogId} برای حذف یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'blog_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `Blog with ID ${blogId} not found for deletion`);
+            operation.end('failed', { reason: 'blog_not_found' });
             return res.redirect('/admin/blogs');
         }
 
@@ -402,16 +469,20 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const reindexedBlogs = reindexItems(blogs);
         await writeJsonFile(BLOGS_PATH, reindexedBlogs);
 
-        logger.info(`✅ بلاگ حذف شد: "${deletedTitle}" (ID: ${blogId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { blogId, title: deletedTitle.substring(0, 50) }); // ← پایان موفق
+        logger.info(`Blog deleted: "${deletedTitle}" (ID: ${blogId}) by ${req.user?.username}`);
+        operation.end('success', { blogId, title: deletedTitle.substring(0, 50) });
 
         res.redirect('/admin/blogs');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در حذف بلاگ ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در حذف بلاگ' });
+        logger.errorWithRequest(req, err, `Error deleting blog ${req.params.id}`);
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error deleting blog' });
     }
 });
+
+// ============================================================
+// EXPORTS
+// ============================================================
 
 module.exports = router;

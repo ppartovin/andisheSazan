@@ -1,33 +1,43 @@
+// ============================================================
+// IMPORTS & DEPENDENCIES
+// ============================================================
+
 const express = require('express');
 const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
-const { logger } = require('../logger'); // ← اضافه کردن logger
+const { logger } = require('../logger');
+
+// ============================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================
 
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
-    logger.error('JWT_SECRET is not defined in environment variables'); // ← تبدیل به logger
+    logger.error('JWT_SECRET is not defined in environment variables');
     process.exit(1);
 }
-
-// ==============================
-// CONSTANTS
-// ==============================
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const FAQS_PATH = path.join(DATA_DIR, 'faqs.json');
 
-// ==============================
-// HELPERS
-// ==============================
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 
+/**
+ * Reads and parses a JSON file from the given path
+ * @param {string} filePath - Path to the JSON file
+ * @returns {Promise<Object|Array>} Parsed JSON data or empty object on error
+ * @throws {Error} If JSON is invalid
+ */
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
         if (!content || content.trim() === '') {
-            return {}; // ✅ آبجکت خالی
+            return {};
         }
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -36,23 +46,35 @@ const readJsonFile = async (filePath) => {
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل سوالات متداول یافت نشد: ${filePath}`);
-            return {}; // ✅ آبجکت خالی
+            logger.warn(`FAQ file not found: ${filePath}`);
+            return {};
         }
-        logger.error(`JSON نامعتبر در فایل سوالات متداول: ${filePath}`, { error: err.message });
+        logger.error(`Invalid JSON in FAQ file: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
 
+/**
+ * Writes data to a JSON file
+ * @param {string} filePath - Path to the JSON file
+ * @param {Object|Array} data - Data to write
+ * @returns {Promise<void>}
+ * @throws {Error} If write operation fails
+ */
 const writeJsonFile = async (filePath, data) => {
     try {
         await writeFile(filePath, JSON.stringify(data, null, 2));
     } catch (err) {
-        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message }); // ← لاگ خطا
+        logger.error(`Error writing file: ${filePath}`, { error: err.message });
         throw new Error(`Failed to write file: ${filePath}`);
     }
 };
 
+/**
+ * Reindexes items to have sequential numeric keys starting from 1
+ * @param {Object} items - Object with numeric keys
+ * @returns {Object} Reindexed object
+ */
 const reindexItems = (items) => {
     const newItems = {};
     let counter = 1;
@@ -63,10 +85,15 @@ const reindexItems = (items) => {
     return newItems;
 };
 
-// ==============================
-// TOKEN FUNCTIONS
-// ==============================
+// ============================================================
+// TOKEN MANAGEMENT
+// ============================================================
 
+/**
+ * Verifies and decodes a JWT token
+ * @param {string} token - JWT token to verify
+ * @returns {Object|null} Decoded token payload or null if invalid
+ */
 const verifyToken = (token) => {
     try {
         return jwt.verify(token, SECRET_KEY);
@@ -75,40 +102,50 @@ const verifyToken = (token) => {
     }
 };
 
-// ==============================
-// MIDDLEWARE: Check Token
-// ==============================
+// ============================================================
+// AUTHENTICATION MIDDLEWARE
+// ============================================================
 
+/**
+ * Middleware to verify admin authentication token
+ * Redirects to login page if token is missing or invalid
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 const checkToken = (req, res, next) => {
     try {
         const token = req.cookies?.adminToken;
         if (!token) {
-            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت سوالات بدون توکن'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'Attempted to access FAQ management without token');
             return res.redirect('/admin/login');
         }
 
         const decoded = verifyToken(token);
         if (!decoded) {
-            logger.withRequest(req, 'توکن نامعتبر در مدیریت سوالات'); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, 'Invalid token in FAQ management');
             return res.redirect('/admin/login');
         }
 
         req.user = decoded;
         next();
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت سوالات'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'Error verifying token in FAQ management');
         res.clearCookie('adminToken');
         res.redirect('/admin/login');
     }
 };
 
-// ==============================
-// ROUTES
-// ==============================
+// ============================================================
+// ROUTES - LIST FAQS
+// ============================================================
 
-// List all FAQs
+/**
+ * GET /admin/faq
+ * Displays a list of all frequently asked questions
+ */
 router.get('/', checkToken, async (req, res) => {
-    const operation = logger.startOperation('بارگذاری لیست سوالات متداول', { // ← شروع عملیات
+    const operation = logger.startOperation('Loading FAQ list', {
         admin: req.user?.username,
         action: 'list_faqs'
     });
@@ -120,31 +157,41 @@ router.get('/', checkToken, async (req, res) => {
             ...item
         }));
 
-        logger.info(`لیست سوالات متداول بارگذاری شد: ${faqs.length} سوال`); // ← لاگ اطلاعات
-        operation.end('success', { faqCount: faqs.length }); // ← پایان موفق
+        logger.info(`FAQ list loaded: ${faqs.length} questions`);
+        operation.end('success', { faqCount: faqs.length });
 
         res.render('adminPanel/adminFaq', { faqs });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست سوالات متداول'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در بارگذاری لیست سوالات' });
+        logger.errorWithRequest(req, err, 'Error loading FAQ list');
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error loading FAQ list' });
     }
 });
 
-// Show add form
+// ============================================================
+// ROUTES - ADD FAQ
+// ============================================================
+
+/**
+ * GET /admin/faq/add
+ * Displays the add FAQ form
+ */
 router.get('/add', checkToken, (req, res) => {
     try {
-        logger.withRequest(req, `دسترسی به فرم افزودن سوال توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
+        logger.withRequest(req, `Accessing add FAQ form by: ${req.user?.username}`);
         res.render('adminPanel/adminFaqAdd', { error: null });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن سوال'); // ← لاگ خطا با اطلاعات درخواست
+        logger.errorWithRequest(req, err, 'Error loading add FAQ form');
         res.status(500).render('err');
     }
 });
 
-// Add new FAQ
+/**
+ * POST /admin/faq/add
+ * Creates a new frequently asked question
+ */
 router.post('/add', checkToken, async (req, res) => {
-    const operation = logger.startOperation('افزودن سوال جدید', { // ← شروع عملیات
+    const operation = logger.startOperation('Adding new FAQ', {
         admin: req.user?.username,
         question: req.body.question?.trim()?.substring(0, 50)
     });
@@ -153,28 +200,28 @@ router.post('/add', checkToken, async (req, res) => {
         const question = escapeHtml(req.body.question.trim());
         const answer = escapeHtml(req.body.answer?.trim() || '');
 
-        // اعتبارسنجی
+        // Validate required fields
         if (!question || question.trim() === '') {
-            logger.withRequest(req, 'تلاش برای افزودن سوال بدون متن'); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'missing_question' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqAdd', { 
-                error: 'سوال الزامی است' 
+            logger.withRequest(req, 'Attempted to add FAQ without question text');
+            operation.end('failed', { reason: 'missing_question' });
+            return res.render('adminPanel/adminFaqAdd', {
+                error: 'Question is required'
             });
         }
 
         if (question.length > 500) {
-            logger.withRequest(req, `سوال خیلی طولانی است: ${question.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'question_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqAdd', { 
-                error: 'سوال نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+            logger.withRequest(req, `Question too long: ${question.length} characters`);
+            operation.end('failed', { reason: 'question_too_long' });
+            return res.render('adminPanel/adminFaqAdd', {
+                error: 'Question cannot exceed 500 characters'
             });
         }
 
         if (answer && answer.length > 2000) {
-            logger.withRequest(req, `پاسخ خیلی طولانی است: ${answer.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'answer_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqAdd', { 
-                error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد' 
+            logger.withRequest(req, `Answer too long: ${answer.length} characters`);
+            operation.end('failed', { reason: 'answer_too_long' });
+            return res.render('adminPanel/adminFaqAdd', {
+                error: 'Answer cannot exceed 2000 characters'
             });
         }
 
@@ -191,26 +238,33 @@ router.post('/add', checkToken, async (req, res) => {
         const reindexedFaqs = reindexItems(faqs);
         await writeJsonFile(FAQS_PATH, reindexedFaqs);
 
-        logger.info(`✅ سوال جدید اضافه شد: "${question.substring(0, 50)}..." (ID: ${nextId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { faqId: nextId, question: question.substring(0, 50) }); // ← پایان موفق
+        logger.info(`New FAQ added: "${question.substring(0, 50)}..." (ID: ${nextId}) by ${req.user?.username}`);
+        operation.end('success', { faqId: nextId, question: question.substring(0, 50) });
 
         res.redirect('/admin/faq');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در افزودن سوال'); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در افزودن سوال' });
+        logger.errorWithRequest(req, err, 'Error adding FAQ');
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error adding FAQ' });
     }
 });
 
-// Show edit form
+// ============================================================
+// ROUTES - EDIT FAQ
+// ============================================================
+
+/**
+ * GET /admin/faq/edit/:id
+ * Displays the edit FAQ form
+ */
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const faqId = req.params.id;
 
-        // اعتبارسنجی ID
+        // Validate ID format
         if (!faqId || isNaN(parseInt(faqId)) || !/^\d+$/.test(faqId)) {
-            logger.withRequest(req, `شناسه سوال نامعتبر برای ویرایش: ${faqId}`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `Invalid FAQ ID for editing: ${faqId}`);
             return res.redirect('/admin/faq');
         }
 
@@ -218,24 +272,27 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const faq = faqs[faqId];
 
         if (!faq) {
-            logger.withRequest(req, `سوال با شناسه ${faqId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
+            logger.withRequest(req, `FAQ with ID ${faqId} not found for editing`);
             return res.redirect('/admin/faq');
         }
 
-        logger.withRequest(req, `دسترسی به فرم ویرایش سوال ${faqId} توسط: ${req.user?.username}`); // ← لاگ با اطلاعات درخواست
-        res.render('adminPanel/adminFaqEdit', { 
-            faq: { id: faqId, ...faq } 
+        logger.withRequest(req, `Accessing edit FAQ form for ${faqId} by: ${req.user?.username}`);
+        res.render('adminPanel/adminFaqEdit', {
+            faq: { id: faqId, ...faq }
         });
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش سوال ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
+        logger.errorWithRequest(req, err, `Error loading edit FAQ form for ${req.params.id}`);
+        res.status(500).render('err', { message: 'Error loading edit form' });
     }
 });
 
-// Update FAQ
+/**
+ * POST /admin/faq/edit/:id
+ * Updates an existing frequently asked question
+ */
 router.post('/edit/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('ویرایش سوال', { // ← شروع عملیات
+    const operation = logger.startOperation('Editing FAQ', {
         admin: req.user?.username,
         faqId: req.params.id,
         question: req.body.question?.trim()?.substring(0, 50)
@@ -246,37 +303,37 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const question = escapeHtml(req.body.question.trim());
         const answer = escapeHtml(req.body.answer?.trim() || '');
 
-        // اعتبارسنجی ID
+        // Validate ID format
         if (!faqId || isNaN(parseInt(faqId)) || !/^\d+$/.test(faqId)) {
-            logger.withRequest(req, `شناسه سوال نامعتبر برای ویرایش: ${faqId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `Invalid FAQ ID for editing: ${faqId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/faq');
         }
 
         const faqs = await readJsonFile(FAQS_PATH);
 
         if (!faqs[faqId]) {
-            logger.withRequest(req, `سوال با شناسه ${faqId} برای ویرایش یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'faq_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `FAQ with ID ${faqId} not found for editing`);
+            operation.end('failed', { reason: 'faq_not_found' });
             return res.redirect('/admin/faq');
         }
 
-        // اعتبارسنجی سوال
+        // Validate question length
         if (question && question.length > 500) {
-            logger.withRequest(req, `سوال خیلی طولانی است: ${question.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'question_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqEdit', { 
+            logger.withRequest(req, `Question too long: ${question.length} characters`);
+            operation.end('failed', { reason: 'question_too_long' });
+            return res.render('adminPanel/adminFaqEdit', {
                 faq: { id: faqId, ...faqs[faqId] },
-                error: 'سوال نباید بیشتر از ۵۰۰ کاراکتر باشد'
+                error: 'Question cannot exceed 500 characters'
             });
         }
 
         if (answer && answer.length > 2000) {
-            logger.withRequest(req, `پاسخ خیلی طولانی است: ${answer.length} کاراکتر`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'answer_too_long' }); // ← پایان ناموفق
-            return res.render('adminPanel/adminFaqEdit', { 
+            logger.withRequest(req, `Answer too long: ${answer.length} characters`);
+            operation.end('failed', { reason: 'answer_too_long' });
+            return res.render('adminPanel/adminFaqEdit', {
                 faq: { id: faqId, ...faqs[faqId] },
-                error: 'پاسخ نباید بیشتر از ۲۰۰۰ کاراکتر باشد'
+                error: 'Answer cannot exceed 2000 characters'
             });
         }
 
@@ -290,21 +347,28 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const reindexedFaqs = reindexItems(faqs);
         await writeJsonFile(FAQS_PATH, reindexedFaqs);
 
-        logger.info(`✅ سوال ویرایش شد: "${oldQuestion.substring(0, 50)}..." → "${question.substring(0, 50)}..." (ID: ${faqId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { faqId, oldQuestion: oldQuestion.substring(0, 50), newQuestion: question.substring(0, 50) }); // ← پایان موفق
+        logger.info(`FAQ updated: "${oldQuestion.substring(0, 50)}..." → "${question.substring(0, 50)}..." (ID: ${faqId}) by ${req.user?.username}`);
+        operation.end('success', { faqId, oldQuestion: oldQuestion.substring(0, 50), newQuestion: question.substring(0, 50) });
 
         res.redirect('/admin/faq');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در ویرایش سوال ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در ویرایش سوال' });
+        logger.errorWithRequest(req, err, `Error editing FAQ ${req.params.id}`);
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error editing FAQ' });
     }
 });
 
-// Delete FAQ
+// ============================================================
+// ROUTES - DELETE FAQ
+// ============================================================
+
+/**
+ * GET /admin/faq/delete/:id
+ * Deletes a frequently asked question
+ */
 router.get('/delete/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('حذف سوال', { // ← شروع عملیات
+    const operation = logger.startOperation('Deleting FAQ', {
         admin: req.user?.username,
         faqId: req.params.id
     });
@@ -312,18 +376,18 @@ router.get('/delete/:id', checkToken, async (req, res) => {
     try {
         const faqId = req.params.id;
 
-        // اعتبارسنجی ID
+        // Validate ID format
         if (!faqId || isNaN(parseInt(faqId)) || !/^\d+$/.test(faqId)) {
-            logger.withRequest(req, `شناسه سوال نامعتبر برای حذف: ${faqId}`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'invalid_id' }); // ← پایان ناموفق
+            logger.withRequest(req, `Invalid FAQ ID for deletion: ${faqId}`);
+            operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/faq');
         }
 
         const faqs = await readJsonFile(FAQS_PATH);
 
         if (!faqs[faqId]) {
-            logger.withRequest(req, `سوال با شناسه ${faqId} برای حذف یافت نشد`); // ← لاگ با اطلاعات درخواست
-            operation.end('failed', { reason: 'faq_not_found' }); // ← پایان ناموفق
+            logger.withRequest(req, `FAQ with ID ${faqId} not found for deletion`);
+            operation.end('failed', { reason: 'faq_not_found' });
             return res.redirect('/admin/faq');
         }
 
@@ -334,16 +398,20 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const reindexedFaqs = reindexItems(faqs);
         await writeJsonFile(FAQS_PATH, reindexedFaqs);
 
-        logger.info(`✅ سوال حذف شد: "${deletedQuestion.substring(0, 50)}..." (ID: ${faqId}) توسط ${req.user?.username}`); // ← لاگ موفقیت
-        operation.end('success', { faqId, question: deletedQuestion.substring(0, 50) }); // ← پایان موفق
+        logger.info(`FAQ deleted: "${deletedQuestion.substring(0, 50)}..." (ID: ${faqId}) by ${req.user?.username}`);
+        operation.end('success', { faqId, question: deletedQuestion.substring(0, 50) });
 
         res.redirect('/admin/faq');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در حذف سوال ${req.params.id}`); // ← لاگ خطا با اطلاعات درخواست
-        operation.end('failed', { error: err.message }); // ← پایان ناموفق
-        res.status(500).render('err', { message: 'خطا در حذف سوال' });
+        logger.errorWithRequest(req, err, `Error deleting FAQ ${req.params.id}`);
+        operation.end('failed', { error: err.message });
+        res.status(500).render('err', { message: 'Error deleting FAQ' });
     }
 });
+
+// ============================================================
+// EXPORTS
+// ============================================================
 
 module.exports = router;

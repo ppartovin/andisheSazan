@@ -1,3 +1,7 @@
+// ============================================================
+// IMPORTS & DEPENDENCIES
+// ============================================================
+
 const express = require('express');
 const router = express.Router();
 const { readFile, writeFile } = require('fs').promises;
@@ -6,24 +10,30 @@ const jwt = require('jsonwebtoken');
 const escapeHtml = require('escape-html');
 const { logger } = require('../logger');
 
+// ============================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================
+
 const SECRET_KEY = process.env.JWT_SECRET;
 if (!SECRET_KEY) {
     logger.error('JWT_SECRET is not defined in environment variables');
     process.exit(1);
 }
 
-// ==============================
-// CONSTANTS
-// ==============================
-
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const PRODUCTS_PATH = path.join(DATA_DIR, 'products.json');
 const INDEX_DATA_PATH = path.join(DATA_DIR, 'index_data.json');
 
-// ==============================
-// HELPERS
-// ==============================
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 
+/**
+ * Reads and parses a JSON file from the given path
+ * @param {string} filePath - Path to the JSON file
+ * @returns {Promise<Object|Array>} Parsed JSON data or empty object on error
+ * @throws {Error} If JSON is invalid
+ */
 const readJsonFile = async (filePath) => {
     try {
         const content = await readFile(filePath, 'utf8');
@@ -37,23 +47,35 @@ const readJsonFile = async (filePath) => {
         return parsed;
     } catch (err) {
         if (err.code === 'ENOENT') {
-            logger.warn(`فایل محصولات یافت نشد: ${filePath}`);
+            logger.warn(`Products file not found: ${filePath}`);
             return {};
         }
-        logger.error(`JSON نامعتبر در فایل محصولات: ${filePath}`, { error: err.message });
+        logger.error(`Invalid JSON in products file: ${filePath}`, { error: err.message });
         throw new Error(`Invalid JSON in: ${filePath}`);
     }
 };
 
+/**
+ * Writes data to a JSON file
+ * @param {string} filePath - Path to the JSON file
+ * @param {Object|Array} data - Data to write
+ * @returns {Promise<void>}
+ * @throws {Error} If write operation fails
+ */
 const writeJsonFile = async (filePath, data) => {
     try {
         await writeFile(filePath, JSON.stringify(data, null, 2));
     } catch (err) {
-        logger.error(`خطا در نوشتن فایل: ${filePath}`, { error: err.message });
+        logger.error(`Error writing file: ${filePath}`, { error: err.message });
         throw new Error(`Failed to write file: ${filePath}`);
     }
 };
 
+/**
+ * Reindexes items to have sequential numeric keys starting from 1
+ * @param {Object} items - Object with numeric keys
+ * @returns {Object} Reindexed object
+ */
 const reindexItems = (items) => {
     const newItems = {};
     let counter = 1;
@@ -64,16 +86,86 @@ const reindexItems = (items) => {
     return newItems;
 };
 
+/**
+ * Generates a unique product code
+ * @returns {string} Unique code in format PRD-TIMESTAMP-RANDOM
+ */
 const generateUniqueCode = () => {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `PRD-${timestamp}-${random}`;
 };
 
-// ==============================
-// TOKEN FUNCTIONS
-// ==============================
+// ============================================================
+// VALIDATION HELPERS
+// ============================================================
 
+/**
+ * Validates if a URL points to a valid image with allowed extension
+ * @param {string} url - Image URL to validate
+ * @returns {boolean} True if URL is valid and has allowed extension
+ */
+const isValidImageUrl = (url) => {
+    if (!url) return true;
+
+    try {
+        const parsed = new URL(url);
+
+        // Only HTTP and HTTPS protocols allowed
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+            return false;
+        }
+
+        // Allowed file extensions
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const ext = path.extname(parsed.pathname).toLowerCase();
+        if (!validExtensions.includes(ext)) {
+            return false;
+        }
+
+        // Block malicious domains
+        const hostname = parsed.hostname.toLowerCase();
+        const blockedDomains = ['malicious.com', 'evil.com'];
+        if (blockedDomains.some(domain => hostname.includes(domain))) {
+            return false;
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Validates if a price string is a valid positive number
+ * @param {string} price - Price string to validate
+ * @returns {boolean} True if price is valid
+ */
+const isValidPrice = (price) => {
+    if (!price) return true;
+    const num = parseFloat(price.replace(/,/g, ''));
+    return !isNaN(num) && num >= 0;
+};
+
+/**
+ * Sanitizes user input by trimming and escaping HTML
+ * @param {string} input - Input string to sanitize
+ * @returns {string} Sanitized string
+ */
+const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return '';
+    return escapeHtml(input.trim());
+};
+
+// ============================================================
+// TOKEN MANAGEMENT
+// ============================================================
+
+/**
+ * Verifies and decodes a JWT token
+ * @param {string} token - JWT token to verify
+ * @returns {Object|null} Decoded token payload or null if invalid
+ */
 const verifyToken = (token) => {
     try {
         return jwt.verify(token, SECRET_KEY);
@@ -82,136 +174,50 @@ const verifyToken = (token) => {
     }
 };
 
-// ==============================
-// MIDDLEWARE: Check Token
-// ==============================
+// ============================================================
+// AUTHENTICATION MIDDLEWARE
+// ============================================================
 
+/**
+ * Middleware to verify admin authentication token
+ * Redirects to login page if token is missing or invalid
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 const checkToken = (req, res, next) => {
     try {
         const token = req.cookies?.adminToken;
         if (!token) {
-            logger.withRequest(req, 'تلاش برای دسترسی به مدیریت محصولات بدون توکن');
+            logger.withRequest(req, 'Attempted to access product management without token');
             return res.redirect('/admin/login');
         }
 
         const decoded = verifyToken(token);
         if (!decoded) {
-            logger.withRequest(req, 'توکن نامعتبر در مدیریت محصولات');
+            logger.withRequest(req, 'Invalid token in product management');
             return res.redirect('/admin/login');
         }
 
         req.user = decoded;
         next();
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بررسی توکن مدیریت محصولات');
+        logger.errorWithRequest(req, err, 'Error verifying token in product management');
         res.clearCookie('adminToken');
         res.redirect('/admin/login');
     }
 };
 
-// ==============================
-// VALIDATION HELPERS
-// ==============================
+// ============================================================
+// ROUTES - LIST PRODUCTS
+// ============================================================
 
-// ==============================
-// VALIDATION HELPERS
-// ==============================
-
-const isValidImageUrl = (url) => {
-    if (!url) return true; // اگر خالی باشد، معتبر است (اختیاری)
-    
-    try {
-        const parsed = new URL(url);
-        
-        // 1️⃣ فقط پروتکل HTTP و HTTPS مجاز است
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-            return false;
-        }
-        
-        // 2️⃣ پسوندهای مجاز تصویر
-        const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
-        const ext = path.extname(parsed.pathname).toLowerCase();
-        if (!validExtensions.includes(ext)) {
-            return false;
-        }
-        
-        // 3️⃣ (اختیاری) جلوگیری از آدرس‌های مخرب
-        // بررسی اینکه آدرس به دامنه‌های معروف مخرب نباشد
-        const hostname = parsed.hostname.toLowerCase();
-        const blockedDomains = ['malicious.com', 'evil.com']; // لیست سیاه
-        if (blockedDomains.some(domain => hostname.includes(domain))) {
-            return false;
-        }
-        
-        return true;
-    } catch {
-        // اگر URL معتبر نباشد، رد می‌شود
-        return false;
-    }
-};
-
-const isValidPrice = (price) => {
-    if (!price) return true;
-    const num = parseFloat(price.replace(/,/g, ''));
-    return !isNaN(num) && num >= 0;
-};
-
-// ✅ تابع جدید برای Sanitize
-const sanitizeInput = (input) => {
-    if (typeof input !== 'string') return '';
-    return escapeHtml(input.trim());
-};
-
-// ✅ تابع جدید برای اعتبارسنجی shops
-const validateShops = (shops) => {
-    const MAX_SHOPS = 20;
-    if (shops.length > MAX_SHOPS) {
-        return { valid: false, error: `حداکثر ${MAX_SHOPS} فروشگاه مجاز است` };
-    }
-    
-    for (const shop of shops) {
-        if (shop.name && shop.name.length > 100) {
-            return { valid: false, error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' };
-        }
-        if (shop.link && shop.link.length > 500) {
-            return { valid: false, error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' };
-        }
-        if (shop.image && shop.image.length > 500) {
-            return { valid: false, error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' };
-        }
-    }
-    
-    return { valid: true };
-};
-
-// ✅ تابع جدید برای اعتبارسنجی properties
-const validateProperties = (properties) => {
-    const MAX_PROPERTIES = 30;
-    const keys = Object.keys(properties);
-    
-    if (keys.length > MAX_PROPERTIES) {
-        return { valid: false, error: `حداکثر ${MAX_PROPERTIES} ویژگی مجاز است` };
-    }
-    
-    for (const [key, value] of Object.entries(properties)) {
-        if (key.length > 100) {
-            return { valid: false, error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' };
-        }
-        if (value.length > 500) {
-            return { valid: false, error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' };
-        }
-    }
-    
-    return { valid: true };
-};
-
-// ==============================
-// ROUTES
-// ==============================
-
-// List all products
+/**
+ * GET /admin/products
+ * Displays a list of all products with showcase status
+ */
 router.get('/', checkToken, async (req, res) => {
-    const operation = logger.startOperation('بارگذاری لیست محصولات', {
+    const operation = logger.startOperation('Loading product list', {
         admin: req.user?.username,
         action: 'list_products'
     });
@@ -227,138 +233,136 @@ router.get('/', checkToken, async (req, res) => {
             isShowcase: showcaseCodes.includes(item.unique_code)
         }));
 
-        logger.info(`لیست محصولات بارگذاری شد: ${products.length} محصول`);
+        logger.info(`Product list loaded: ${products.length} products`);
         operation.end('success', { productCount: products.length });
 
         res.render('adminPanel/adminProducts', { products });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری لیست محصولات');
+        logger.errorWithRequest(req, err, 'Error loading product list');
         operation.end('failed', { error: err.message });
-        res.status(500).render('err', { message: 'خطا در بارگذاری لیست محصولات' });
+        res.status(500).render('err', { message: 'Error loading product list' });
     }
 });
 
-// Show add form
+// ============================================================
+// ROUTES - ADD PRODUCT
+// ============================================================
+
+/**
+ * GET /admin/products/add
+ * Displays the add product form
+ */
 router.get('/add', checkToken, async (req, res) => {
     try {
-        logger.withRequest(req, `دسترسی به فرم افزودن محصول توسط: ${req.user?.username}`);
+        logger.withRequest(req, `Accessing add product form by: ${req.user?.username}`);
         res.render('adminPanel/adminProductsAdd', { error: null });
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در بارگذاری فرم افزودن محصول');
+        logger.errorWithRequest(req, err, 'Error loading add product form');
         res.status(500).render('err');
     }
 });
 
-// Add new product
+/**
+ * POST /admin/products/add
+ * Creates a new product
+ */
 router.post('/add', checkToken, async (req, res) => {
-    const operation = logger.startOperation('افزودن محصول جدید', {
+    const operation = logger.startOperation('Adding new product', {
         admin: req.user?.username,
         title: req.body.title?.trim()?.substring(0, 50)
     });
 
     try {
-        logger.debug('داده‌های دریافتی برای محصول جدید', { body: req.body });
+        logger.debug('Received data for new product', { body: req.body });
 
         const { title, subtitle, price, description } = req.body;
 
-        // اعتبارسنجی عنوان
+        // Validate required fields
         if (!title || title.trim() === '') {
-            logger.withRequest(req, 'تلاش برای افزودن محصول بدون عنوان');
+            logger.withRequest(req, 'Attempted to add product without title');
             operation.end('failed', { reason: 'missing_title' });
-            return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول الزامی است' });
+            return res.render('adminPanel/adminProductsAdd', { error: 'Product title is required' });
         }
 
         if (title.length > 200) {
-            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`);
+            logger.withRequest(req, `Product title too long: ${title.length} characters`);
             operation.end('failed', { reason: 'title_too_long' });
-            return res.render('adminPanel/adminProductsAdd', { error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد' });
+            return res.render('adminPanel/adminProductsAdd', { error: 'Product title cannot exceed 200 characters' });
         }
 
-        // ==============================
-        // پردازش تصاویر (آرایه)
-        // ==============================
-/*         const imageArray = req.body.image || [];
-        const cleanedImages = imageArray.filter(img => img && img.trim()).map(img => img.trim());
- */
-
+        // Process images
         const imageArray = req.body.image || [];
         const cleanedImages = [];
         const MAX_IMAGES = 10;
-        // اعتبارسنجی تعداد تصاویر
+
         if (imageArray.length > MAX_IMAGES) {
-            logger.withRequest(req, `تعداد تصاویر بیشتر از حد مجاز: ${imageArray.length}`);
+            logger.withRequest(req, `Too many images: ${imageArray.length}`);
             operation.end('failed', { reason: 'too_many_images' });
-            return res.render('adminPanel/adminProductsAdd', { 
-                error: `حداکثر ${MAX_IMAGES} تصویر مجاز است` 
+            return res.render('adminPanel/adminProductsAdd', {
+                error: `Maximum ${MAX_IMAGES} images allowed`
             });
         }
 
-        // اعتبارسنجی هر تصویر
         for (const img of imageArray) {
             if (img && img.trim()) {
                 const trimmed = img.trim();
-                
+
                 if (!isValidImageUrl(trimmed)) {
-                    logger.withRequest(req, `آدرس تصویر نامعتبر: ${trimmed}`);
+                    logger.withRequest(req, `Invalid image URL: ${trimmed}`);
                     operation.end('failed', { reason: 'invalid_image_url' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'آدرس تصویر نامعتبر است. فقط آدرس‌های معتبر با پسوندهای jpg, jpeg, png, gif, webp, svg مجاز هستند.' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Invalid image URL. Only jpg, jpeg, png, gif, webp, svg extensions are allowed.'
                     });
                 }
-                
+
                 cleanedImages.push(trimmed);
             }
         }
 
-        // ==============================
-        // پردازش فروشگاه‌ها (با Sanitize و اعتبارسنجی)
-        // ==============================
+        // Process shops
         const shops = [];
         const shopNames = req.body.shop_name || [];
         const shopLinks = req.body.shop_link || [];
         const shopImages = req.body.shop_image || [];
 
-        // ✅ اعتبارسنجی تعداد فروشگاه‌ها
         if (shopNames.length > 20) {
-            logger.withRequest(req, `تعداد فروشگاه‌ها بیشتر از حد مجاز: ${shopNames.length}`);
+            logger.withRequest(req, `Too many shops: ${shopNames.length}`);
             operation.end('failed', { reason: 'too_many_shops' });
-            return res.render('adminPanel/adminProductsAdd', { 
-                error: 'حداکثر ۲۰ فروشگاه مجاز است' 
+            return res.render('adminPanel/adminProductsAdd', {
+                error: 'Maximum 20 shops allowed'
             });
         }
 
         for (let i = 0; i < shopNames.length; i++) {
             if (shopNames[i] && shopNames[i].trim()) {
-                // ✅ Sanitize کامل
                 const name = sanitizeInput(shopNames[i]);
                 const link = sanitizeInput(shopLinks[i] || '');
                 const image = sanitizeInput(shopImages[i] || '');
-                
-                // ✅ اعتبارسنجی طول
+
                 if (name.length > 100) {
-                    logger.withRequest(req, `نام فروشگاه خیلی طولانی است: ${name.length} کاراکتر`);
+                    logger.withRequest(req, `Shop name too long: ${name.length} characters`);
                     operation.end('failed', { reason: 'shop_name_too_long' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Shop name cannot exceed 100 characters'
                     });
                 }
-                
+
                 if (link.length > 500) {
-                    logger.withRequest(req, `لینک فروشگاه خیلی طولانی است: ${link.length} کاراکتر`);
+                    logger.withRequest(req, `Shop link too long: ${link.length} characters`);
                     operation.end('failed', { reason: 'shop_link_too_long' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Shop link cannot exceed 500 characters'
                     });
                 }
-                
+
                 if (image.length > 500) {
-                    logger.withRequest(req, `آدرس تصویر فروشگاه خیلی طولانی است: ${image.length} کاراکتر`);
+                    logger.withRequest(req, `Shop image URL too long: ${image.length} characters`);
                     operation.end('failed', { reason: 'shop_image_too_long' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Shop image URL cannot exceed 500 characters'
                     });
                 }
-                
+
                 shops.push({
                     name: name,
                     link: link,
@@ -367,52 +371,45 @@ router.post('/add', checkToken, async (req, res) => {
             }
         }
 
-        // ==============================
-        // پردازش ویژگی‌ها (با Sanitize و اعتبارسنجی)
-        // ==============================
+        // Process properties
         const properties = {};
         const propKeys = req.body.prop_key || [];
         const propValues = req.body.prop_value || [];
 
-        // ✅ اعتبارسنجی تعداد ویژگی‌ها
         if (propKeys.length > 30) {
-            logger.withRequest(req, `تعداد ویژگی‌ها بیشتر از حد مجاز: ${propKeys.length}`);
+            logger.withRequest(req, `Too many properties: ${propKeys.length}`);
             operation.end('failed', { reason: 'too_many_properties' });
-            return res.render('adminPanel/adminProductsAdd', { 
-                error: 'حداکثر ۳۰ ویژگی مجاز است' 
+            return res.render('adminPanel/adminProductsAdd', {
+                error: 'Maximum 30 properties allowed'
             });
         }
 
         for (let i = 0; i < propKeys.length; i++) {
             if (propKeys[i] && propKeys[i].trim()) {
-                // ✅ Sanitize کامل
                 const key = sanitizeInput(propKeys[i]);
                 const value = sanitizeInput(propValues[i] || '');
-                
-                // ✅ اعتبارسنجی طول
+
                 if (key.length > 100) {
-                    logger.withRequest(req, `کلید ویژگی خیلی طولانی است: ${key.length} کاراکتر`);
+                    logger.withRequest(req, `Property key too long: ${key.length} characters`);
                     operation.end('failed', { reason: 'property_key_too_long' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Property key cannot exceed 100 characters'
                     });
                 }
-                
+
                 if (value.length > 500) {
-                    logger.withRequest(req, `مقدار ویژگی خیلی طولانی است: ${value.length} کاراکتر`);
+                    logger.withRequest(req, `Property value too long: ${value.length} characters`);
                     operation.end('failed', { reason: 'property_value_too_long' });
-                    return res.render('adminPanel/adminProductsAdd', { 
-                        error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                    return res.render('adminPanel/adminProductsAdd', {
+                        error: 'Property value cannot exceed 500 characters'
                     });
                 }
-                
+
                 properties[key] = value;
             }
         }
 
-        // ==============================
-        // خواندن فایل و ذخیره
-        // ==============================
+        // Save product
         const products = await readJsonFile(PRODUCTS_PATH);
 
         const ids = Object.keys(products).map(Number);
@@ -431,17 +428,17 @@ router.post('/add', checkToken, async (req, res) => {
             unique_code: uniqueCode
         };
 
-        logger.debug('محصول جدید ساخته شد', { product: newProduct });
+        logger.debug('New product created', { product: newProduct });
 
         products[nextId] = newProduct;
 
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول جدید اضافه شد: "${title.trim()}" (ID: ${nextId}, کد: ${uniqueCode}) توسط ${req.user?.username}`);
-        operation.end('success', { 
-            productId: nextId, 
-            uniqueCode, 
+        logger.info(`New product added: "${title.trim()}" (ID: ${nextId}, Code: ${uniqueCode}) by ${req.user?.username}`);
+        operation.end('success', {
+            productId: nextId,
+            uniqueCode,
             title: title.trim().substring(0, 50),
             shopCount: shops.length,
             imageCount: cleanedImages.length,
@@ -451,19 +448,26 @@ router.post('/add', checkToken, async (req, res) => {
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, 'خطا در افزودن محصول');
+        logger.errorWithRequest(req, err, 'Error adding product');
         operation.end('failed', { error: err.message });
-        res.status(500).render('err', { message: 'خطا در افزودن محصول' });
+        res.status(500).render('err', { message: 'Error adding product' });
     }
 });
 
-// Show edit form
+// ============================================================
+// ROUTES - EDIT PRODUCT
+// ============================================================
+
+/**
+ * GET /admin/products/edit/:id
+ * Displays the edit product form
+ */
 router.get('/edit/:id', checkToken, async (req, res) => {
     try {
         const productId = req.params.id;
-        
+
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`);
+            logger.withRequest(req, `Invalid product ID for editing: ${productId}`);
             return res.redirect('/admin/products');
         }
 
@@ -471,24 +475,27 @@ router.get('/edit/:id', checkToken, async (req, res) => {
         const product = products[productId];
 
         if (!product) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`);
+            logger.withRequest(req, `Product with ID ${productId} not found for editing`);
             return res.redirect('/admin/products');
         }
 
-        logger.withRequest(req, `دسترسی به فرم ویرایش محصول ${productId} (${product.title}) توسط: ${req.user?.username}`);
-        res.render('adminPanel/adminProductsEdit', { 
-            product: { id: productId, ...product } 
+        logger.withRequest(req, `Accessing edit product form for ${productId} (${product.title}) by: ${req.user?.username}`);
+        res.render('adminPanel/adminProductsEdit', {
+            product: { id: productId, ...product }
         });
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در بارگذاری فرم ویرایش محصول ${req.params.id}`);
-        res.status(500).render('err', { message: 'خطا در بارگذاری فرم ویرایش' });
+        logger.errorWithRequest(req, err, `Error loading edit product form for ${req.params.id}`);
+        res.status(500).render('err', { message: 'Error loading edit form' });
     }
 });
 
-// Update product
+/**
+ * POST /admin/products/edit/:id
+ * Updates an existing product
+ */
 router.post('/edit/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('ویرایش محصول', {
+    const operation = logger.startOperation('Editing product', {
         admin: req.user?.username,
         productId: req.params.id,
         title: req.body.title?.trim()?.substring(0, 50)
@@ -499,7 +506,7 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const { title, subtitle, price, description } = req.body;
 
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای ویرایش: ${productId}`);
+            logger.withRequest(req, `Invalid product ID for editing: ${productId}`);
             operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/products');
         }
@@ -507,73 +514,72 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای ویرایش یافت نشد`);
+            logger.withRequest(req, `Product with ID ${productId} not found for editing`);
             operation.end('failed', { reason: 'product_not_found' });
             return res.redirect('/admin/products');
         }
 
         if (title && title.length > 200) {
-            logger.withRequest(req, `عنوان محصول خیلی طولانی است: ${title.length} کاراکتر`);
+            logger.withRequest(req, `Product title too long: ${title.length} characters`);
             operation.end('failed', { reason: 'title_too_long' });
-            return res.render('adminPanel/adminProductsEdit', { 
+            return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
-                error: 'عنوان محصول نباید بیشتر از ۲۰۰ کاراکتر باشد'
+                error: 'Product title cannot exceed 200 characters'
             });
         }
 
         if (price && !isValidPrice(price)) {
-            logger.withRequest(req, `قیمت نامعتبر: ${price}`);
+            logger.withRequest(req, `Invalid price: ${price}`);
             operation.end('failed', { reason: 'invalid_price' });
             return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
-                error: 'قیمت باید یک عدد معتبر باشد'
+                error: 'Price must be a valid number'
             });
         }
 
+        // Process images
         const imageArray = req.body.image || [];
         const cleanedImages = [];
         const MAX_IMAGES = 10;
 
         if (imageArray.length > MAX_IMAGES) {
-            logger.withRequest(req, `تعداد تصاویر بیشتر از حد مجاز در ویرایش: ${imageArray.length}`);
+            logger.withRequest(req, `Too many images in edit: ${imageArray.length}`);
             operation.end('failed', { reason: 'too_many_images' });
-            return res.render('adminPanel/adminProductsEdit', { 
+            return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
-                error: `حداکثر ${MAX_IMAGES} تصویر مجاز است` 
+                error: `Maximum ${MAX_IMAGES} images allowed`
             });
         }
 
         for (const img of imageArray) {
             if (img && img.trim()) {
                 const trimmed = img.trim();
-                
+
                 if (!isValidImageUrl(trimmed)) {
-                    logger.withRequest(req, `آدرس تصویر نامعتبر در ویرایش: ${trimmed}`);
+                    logger.withRequest(req, `Invalid image URL in edit: ${trimmed}`);
                     operation.end('failed', { reason: 'invalid_image_url' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'آدرس تصویر نامعتبر است' 
+                        error: 'Invalid image URL'
                     });
                 }
-                
+
                 cleanedImages.push(trimmed);
             }
         }
 
-        // ==============================
-        // پردازش فروشگاه‌ها در ویرایش (با Sanitize و اعتبارسنجی)
-        // ==============================
+        // Process shops
         const shops = [];
         const shopNames = req.body.shop_name || [];
         const shopLinks = req.body.shop_link || [];
         const shopImages = req.body.shop_image || [];
 
         if (shopNames.length > 20) {
-            logger.withRequest(req, `تعداد فروشگاه‌ها بیشتر از حد مجاز در ویرایش: ${shopNames.length}`);
+            logger.withRequest(req, `Too many shops in edit: ${shopNames.length}`);
             operation.end('failed', { reason: 'too_many_shops' });
-            return res.render('adminPanel/adminProductsEdit', { 
+            return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
-                error: 'حداکثر ۲۰ فروشگاه مجاز است' 
+                error: 'Maximum 20 shops allowed'
             });
         }
 
@@ -582,34 +588,34 @@ router.post('/edit/:id', checkToken, async (req, res) => {
                 const name = sanitizeInput(shopNames[i]);
                 const link = sanitizeInput(shopLinks[i] || '');
                 const image = sanitizeInput(shopImages[i] || '');
-                
+
                 if (name.length > 100) {
-                    logger.withRequest(req, `نام فروشگاه خیلی طولانی است در ویرایش: ${name.length} کاراکتر`);
+                    logger.withRequest(req, `Shop name too long in edit: ${name.length} characters`);
                     operation.end('failed', { reason: 'shop_name_too_long' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'نام فروشگاه نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                        error: 'Shop name cannot exceed 100 characters'
                     });
                 }
-                
+
                 if (link.length > 500) {
-                    logger.withRequest(req, `لینک فروشگاه خیلی طولانی است در ویرایش: ${link.length} کاراکتر`);
+                    logger.withRequest(req, `Shop link too long in edit: ${link.length} characters`);
                     operation.end('failed', { reason: 'shop_link_too_long' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'لینک فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                        error: 'Shop link cannot exceed 500 characters'
                     });
                 }
-                
+
                 if (image.length > 500) {
-                    logger.withRequest(req, `آدرس تصویر فروشگاه خیلی طولانی است در ویرایش: ${image.length} کاراکتر`);
+                    logger.withRequest(req, `Shop image URL too long in edit: ${image.length} characters`);
                     operation.end('failed', { reason: 'shop_image_too_long' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'آدرس تصویر فروشگاه نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                        error: 'Shop image URL cannot exceed 500 characters'
                     });
                 }
-                
+
                 shops.push({
                     name: name,
                     link: link,
@@ -618,19 +624,17 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             }
         }
 
-        // ==============================
-        // پردازش ویژگی‌ها در ویرایش (با Sanitize و اعتبارسنجی)
-        // ==============================
+        // Process properties
         const properties = {};
         const propKeys = req.body.prop_key || [];
         const propValues = req.body.prop_value || [];
 
         if (propKeys.length > 30) {
-            logger.withRequest(req, `تعداد ویژگی‌ها بیشتر از حد مجاز در ویرایش: ${propKeys.length}`);
+            logger.withRequest(req, `Too many properties in edit: ${propKeys.length}`);
             operation.end('failed', { reason: 'too_many_properties' });
-            return res.render('adminPanel/adminProductsEdit', { 
+            return res.render('adminPanel/adminProductsEdit', {
                 product: { id: productId, ...products[productId] },
-                error: 'حداکثر ۳۰ ویژگی مجاز است' 
+                error: 'Maximum 30 properties allowed'
             });
         }
 
@@ -638,25 +642,25 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             if (propKeys[i] && propKeys[i].trim()) {
                 const key = sanitizeInput(propKeys[i]);
                 const value = sanitizeInput(propValues[i] || '');
-                
+
                 if (key.length > 100) {
-                    logger.withRequest(req, `کلید ویژگی خیلی طولانی است در ویرایش: ${key.length} کاراکتر`);
+                    logger.withRequest(req, `Property key too long in edit: ${key.length} characters`);
                     operation.end('failed', { reason: 'property_key_too_long' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'کلید ویژگی نباید بیشتر از ۱۰۰ کاراکتر باشد' 
+                        error: 'Property key cannot exceed 100 characters'
                     });
                 }
-                
+
                 if (value.length > 500) {
-                    logger.withRequest(req, `مقدار ویژگی خیلی طولانی است در ویرایش: ${value.length} کاراکتر`);
+                    logger.withRequest(req, `Property value too long in edit: ${value.length} characters`);
                     operation.end('failed', { reason: 'property_value_too_long' });
-                    return res.render('adminPanel/adminProductsEdit', { 
+                    return res.render('adminPanel/adminProductsEdit', {
                         product: { id: productId, ...products[productId] },
-                        error: 'مقدار ویژگی نباید بیشتر از ۵۰۰ کاراکتر باشد' 
+                        error: 'Property value cannot exceed 500 characters'
                     });
                 }
-                
+
                 properties[key] = value;
             }
         }
@@ -669,7 +673,7 @@ router.post('/edit/:id', checkToken, async (req, res) => {
             subtitle: sanitizeInput(subtitle || products[productId].subtitle || ''),
             price: price?.trim() || products[productId].price || '',
             description: sanitizeInput(description || products[productId].description || ''),
-            image: cleanedImages, // ← اضافه کنید
+            image: cleanedImages,
             shops: shops,
             properties: properties
         };
@@ -677,10 +681,10 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول ویرایش شد: "${oldTitle}" → "${title}" (ID: ${productId}) توسط ${req.user?.username}`);
-        operation.end('success', { 
-            productId, 
-            oldTitle: oldTitle.substring(0, 50), 
+        logger.info(`Product updated: "${oldTitle}" → "${title}" (ID: ${productId}) by ${req.user?.username}`);
+        operation.end('success', {
+            productId,
+            oldTitle: oldTitle.substring(0, 50),
             newTitle: title?.substring(0, 50) || oldTitle.substring(0, 50),
             shopCount: shops.length,
             propertyCount: Object.keys(properties).length
@@ -689,15 +693,22 @@ router.post('/edit/:id', checkToken, async (req, res) => {
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در ویرایش محصول ${req.params.id}`);
+        logger.errorWithRequest(req, err, `Error editing product ${req.params.id}`);
         operation.end('failed', { error: err.message });
-        res.status(500).render('err', { message: 'خطا در ویرایش محصول' });
+        res.status(500).render('err', { message: 'Error editing product' });
     }
 });
 
-// Delete product
+// ============================================================
+// ROUTES - DELETE PRODUCT
+// ============================================================
+
+/**
+ * GET /admin/products/delete/:id
+ * Deletes a product and removes it from showcase if present
+ */
 router.get('/delete/:id', checkToken, async (req, res) => {
-    const operation = logger.startOperation('حذف محصول', {
+    const operation = logger.startOperation('Deleting product', {
         admin: req.user?.username,
         productId: req.params.id
     });
@@ -706,7 +717,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const productId = req.params.id;
 
         if (!productId || isNaN(parseInt(productId)) || !/^\d+$/.test(productId)) {
-            logger.withRequest(req, `شناسه محصول نامعتبر برای حذف: ${productId}`);
+            logger.withRequest(req, `Invalid product ID for deletion: ${productId}`);
             operation.end('failed', { reason: 'invalid_id' });
             return res.redirect('/admin/products');
         }
@@ -714,7 +725,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const products = await readJsonFile(PRODUCTS_PATH);
 
         if (!products[productId]) {
-            logger.withRequest(req, `محصول با شناسه ${productId} برای حذف یافت نشد`);
+            logger.withRequest(req, `Product with ID ${productId} not found for deletion`);
             operation.end('failed', { reason: 'product_not_found' });
             return res.redirect('/admin/products');
         }
@@ -722,7 +733,7 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const deletedTitle = products[productId].title;
         const uniqueCode = products[productId].unique_code;
 
-        // حذف از ویترین اگر وجود داشت
+        // Remove from showcase if present
         const indexData = await readJsonFile(INDEX_DATA_PATH);
         if (uniqueCode) {
             indexData.top_products = (indexData.top_products || []).filter(code => code !== uniqueCode);
@@ -734,24 +745,28 @@ router.get('/delete/:id', checkToken, async (req, res) => {
         const reindexedProducts = reindexItems(products);
         await writeJsonFile(PRODUCTS_PATH, reindexedProducts);
 
-        logger.info(`✅ محصول حذف شد: "${deletedTitle}" (ID: ${productId}, کد: ${uniqueCode}) توسط ${req.user?.username}`);
+        logger.info(`Product deleted: "${deletedTitle}" (ID: ${productId}, Code: ${uniqueCode}) by ${req.user?.username}`);
         operation.end('success', { productId, title: deletedTitle.substring(0, 50), uniqueCode });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در حذف محصول ${req.params.id}`);
+        logger.errorWithRequest(req, err, `Error deleting product ${req.params.id}`);
         operation.end('failed', { error: err.message });
-        res.status(500).render('err', { message: 'خطا در حذف محصول' });
+        res.status(500).render('err', { message: 'Error deleting product' });
     }
 });
 
-// ==============================
-// TOGGLE SHOWCASE
-// ==============================
+// ============================================================
+// ROUTES - TOGGLE SHOWCASE
+// ============================================================
 
+/**
+ * GET /admin/products/toggle-showcase/:uniqueCode
+ * Toggles a product's showcase status
+ */
 router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
-    const operation = logger.startOperation('تغییر وضعیت ویترین', {
+    const operation = logger.startOperation('Toggling showcase status', {
         admin: req.user?.username,
         uniqueCode: req.params.uniqueCode
     });
@@ -760,7 +775,7 @@ router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
         const uniqueCode = req.params.uniqueCode;
 
         if (!uniqueCode) {
-            logger.withRequest(req, 'کد یکتا برای تغییر وضعیت ویترین دریافت نشد');
+            logger.withRequest(req, 'Missing unique code for showcase toggle');
             operation.end('failed', { reason: 'missing_unique_code' });
             return res.redirect('/admin/products');
         }
@@ -787,16 +802,20 @@ router.get('/toggle-showcase/:uniqueCode', checkToken, async (req, res) => {
 
         await writeJsonFile(INDEX_DATA_PATH, indexData);
 
-        logger.info(`✅ وضعیت ویترین برای کد ${uniqueCode}: ${action === 'added' ? 'افزوده شد' : 'حذف شد'} توسط ${req.user?.username}`);
+        logger.info(`Showcase status for code ${uniqueCode}: ${action} by ${req.user?.username}`);
         operation.end('success', { uniqueCode, action });
 
         res.redirect('/admin/products');
 
     } catch (err) {
-        logger.errorWithRequest(req, err, `خطا در تغییر وضعیت ویترین برای کد ${req.params.uniqueCode}`);
+        logger.errorWithRequest(req, err, `Error toggling showcase for code ${req.params.uniqueCode}`);
         operation.end('failed', { error: err.message });
-        res.status(500).render('err', { message: 'خطا در تغییر وضعیت ویترین' });
+        res.status(500).render('err', { message: 'Error toggling showcase status' });
     }
 });
+
+// ============================================================
+// EXPORTS
+// ============================================================
 
 module.exports = router;
