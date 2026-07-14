@@ -2227,3 +2227,6 @@
 {"level":"info","message":"::ffff:127.0.0.1 - - [12/Jul/2026:17:38:56 +0000] \"GET /api/blogs/2/fa HTTP/1.1\" 200 - \"http://127.0.0.1:3009/blogs/fa\" \"Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36\"","timestamp":"2026-07-12 21:08:56"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [12/Jul/2026:17:38:56 +0000] \"GET /public/images/skull5.png HTTP/1.1\" 200 300162 \"http://127.0.0.1:3009/blogs/fa\" \"Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36\"","timestamp":"2026-07-12 21:08:56"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [12/Jul/2026:17:38:56 +0000] \"GET /public/images/uno2.png HTTP/1.1\" 200 617416 \"http://127.0.0.1:3009/blogs/fa\" \"Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Mobile Safari/537.36\"","timestamp":"2026-07-12 21:08:56"}
+{"level":"info","message":"🚀 سرور روی پورت 3009 در حالت develop اجرا شد","timestamp":"2026-07-12 21:47:36"}
+{"level":"info","message":"📁 لاگ‌ها در پوشه logs/ ذخیره می‌شوند","timestamp":"2026-07-12 21:47:36"}
+{"level":"info","message":"✅ پوشه تصاویر آماده شد","timestamp":"2026-07-12 21:47:36"}
