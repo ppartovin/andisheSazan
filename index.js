@@ -41,9 +41,9 @@ app.use('/public', express.static('public', {
 }));
 
 // Rate limiting (commented out)
-/* app.use('/admin/login', config.loginLimiter);
+app.use('/admin/login', config.loginLimiter);
 app.use(config.limiterPerMinute);
-app.use(config.limiterPer20Minutes); */
+app.use(config.limiterPer20Minutes);
 
 // ============================================================
 // VALIDATION HELPERS
